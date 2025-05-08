@@ -26,8 +26,8 @@ pub struct Dict<KA: DictKeyAdapter<K>, VA: DictValAdapter<V>, K, V> {
 }
 
 /// Write present marker (0|1 bit) to root cell, and then Dict data to first ref cell.
-/// Usage: `#[tlb_derive(adapter = "TLBDict::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]` instead
-pub struct TLBDict<KA: DictKeyAdapter<K>, VA: DictValAdapter<V>, K, V>(Dict<KA, VA, K, V>);
+/// Usage: `#[tlb_derive(adapter = "DictRef::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]` instead
+pub struct DictRef<KA: DictKeyAdapter<K>, VA: DictValAdapter<V>, K, V>(Dict<KA, VA, K, V>);
 
 impl<KA, VA, K, V> Dict<KA, VA, K, V>
 where
@@ -68,7 +68,7 @@ where
     }
 }
 
-impl<KA, VA, K, V> TLBDict<KA, VA, K, V>
+impl<KA, VA, K, V> DictRef<KA, VA, K, V>
 where
     KA: DictKeyAdapter<K>,
     VA: DictValAdapter<V>,
@@ -101,7 +101,7 @@ mod tests {
     use crate::cell::ton_cell::TonCell;
     use crate::types::tlb::adapters::dict::dict_key_adapters::DictKeyAdapterInto;
     use crate::types::tlb::adapters::dict::dict_val_adapters::DictValAdapterNum;
-    use crate::types::tlb::adapters::dict::TLBDict;
+    use crate::types::tlb::adapters::dict::DictRef;
     use crate::types::tlb::tlb_type::TLBType;
     use num_bigint::BigUint;
     use std::collections::HashMap;
@@ -118,11 +118,11 @@ mod tests {
         let mut parser = dict_cell.parser();
         let some_data = parser.read_bits(96)?;
 
-        let parsed_data = TLBDict::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(8).read(&mut parser)?;
+        let parsed_data = DictRef::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(8).read(&mut parser)?;
         assert_eq!(expected_data, parsed_data);
         let mut builder = TonCell::builder();
         builder.write_bits(&some_data, 96)?;
-        TLBDict::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(8).write(&mut builder, &expected_data)?;
+        DictRef::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(8).write(&mut builder, &expected_data)?;
         let constructed_cell = builder.build()?;
         assert_eq!(dict_cell, constructed_cell);
         Ok(())
@@ -140,12 +140,12 @@ mod tests {
 
         for key_len_bits in [8u32, 16, 32, 64, 111] {
             let mut builder = TonCell::builder();
-            TLBDict::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(key_len_bits)
+            DictRef::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(key_len_bits)
                 .write(&mut builder, &data)?;
             let dict_cell = builder.build()?;
             let mut parser = dict_cell.parser();
             let parsed =
-                TLBDict::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(key_len_bits).read(&mut parser)?;
+                DictRef::<DictKeyAdapterInto, DictValAdapterNum<150>, _, _>::new(key_len_bits).read(&mut parser)?;
             assert_eq!(data, parsed, "key_len_bits: {}", key_len_bits);
         }
         Ok(())

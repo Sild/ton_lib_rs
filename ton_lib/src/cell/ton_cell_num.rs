@@ -6,7 +6,7 @@ use std::fmt::Display;
 /// Allows generic read/write operation for any numeric type
 pub trait TonCellNum: Display + Sized + Clone {
     const SIGNED: bool;
-    const IS_PRIMITIVE: bool = false;
+    const IS_PRIMITIVE: bool;
     type Primitive: Zero + Integer;
     type UnsignedPrimitive: Integer;
 
@@ -73,6 +73,7 @@ impl TonCellNum for usize {
 // Implementation for BigInt and BigUint
 impl TonCellNum for BigInt {
     const SIGNED: bool = true;
+    const IS_PRIMITIVE: bool = false;
     type Primitive = i128;
     type UnsignedPrimitive = u128;
     fn tcn_from_bytes(bytes: &[u8]) -> Self { BigInt::from_signed_bytes_be(bytes) }
@@ -88,6 +89,7 @@ impl TonCellNum for BigInt {
 
 impl TonCellNum for BigUint {
     const SIGNED: bool = false;
+    const IS_PRIMITIVE: bool = false;
     type Primitive = u128;
     type UnsignedPrimitive = u128;
     fn tcn_from_bytes(bytes: &[u8]) -> Self { BigUint::from_bytes_be(bytes) }

@@ -1,3 +1,5 @@
+pub mod ser_de;
+
 use crate::cell::ton_cell_num::TonCellNum;
 use crate::errors::TonlibError;
 use base64::prelude::BASE64_STANDARD;
@@ -18,18 +20,17 @@ enum TonHashData {
 impl TonHash {
     pub const BYTES_LEN: usize = 32;
     pub const BITS_LEN: usize = 256;
-    pub const ZERO: TonHash = TonHash(TonHashData::Slice([0u8; 32]));
-    pub const EMPTY_CELL_HASH: TonHash = TonHash(TonHashData::Slice([
+    pub const ZERO: TonHash = TonHash::from_slice(&[0u8; 32]);
+    pub const EMPTY_CELL_HASH: TonHash = TonHash::from_slice(&[
         150, 162, 150, 210, 36, 242, 133, 198, 123, 238, 147, 195, 15, 138, 48, 145, 87, 240, 218, 163, 93, 197, 184,
         126, 65, 11, 120, 99, 10, 9, 207, 199,
-    ]));
+    ]);
 
     pub const fn from_slice(data: &[u8; 32]) -> Self { Self(TonHashData::Slice(*data)) }
 
-    pub fn from_bytes<T: AsRef<[u8]>>(data: T) -> Result<Self, TonlibError> {
-        let bytes = data.as_ref();
-        check_bytes_len(bytes)?;
-        Ok(Self(TonHashData::Slice(bytes[..32].try_into().unwrap())))
+    pub fn from_bytes(data: &[u8]) -> Result<Self, TonlibError> {
+        check_bytes_len(data)?;
+        Ok(Self::from_slice(data[..32].try_into().unwrap()))
     }
 
     pub fn from_vec(data: Vec<u8>) -> Result<Self, TonlibError> {
@@ -44,7 +45,7 @@ impl TonHash {
                 given: 128, // max primitive size
             });
         }
-        Self::from_bytes(num.tcn_to_bytes())
+        Self::from_bytes(&num.tcn_to_bytes())
     }
 
     pub fn as_slice(&self) -> &[u8] { self.0.as_slice() }
@@ -53,6 +54,13 @@ impl TonHash {
         match &self.0 {
             TonHashData::Slice(data) => data,
             TonHashData::Vec(data) => data.as_slice().try_into().unwrap(),
+        }
+    }
+
+    pub fn as_mut_slice_sized(&mut self) -> &mut [u8; 32] {
+        match &mut self.0 {
+            TonHashData::Slice(data) => data,
+            TonHashData::Vec(data) => data.as_mut_slice().try_into().unwrap(),
         }
     }
 
@@ -166,7 +174,7 @@ mod tests {
     #[test]
     fn test_ton_hash_from_bytes() -> anyhow::Result<()> {
         let data = [1u8; 32];
-        let hash = TonHash::from_bytes(data)?;
+        let hash = TonHash::from_bytes(&data)?;
         assert_eq!(hash.as_slice(), &data);
         Ok(())
     }
@@ -174,7 +182,7 @@ mod tests {
     #[test]
     fn test_ton_hash_from_vec() -> anyhow::Result<()> {
         let data = [1u8; 32];
-        let hash = TonHash::from_bytes(data)?;
+        let hash = TonHash::from_bytes(&data)?;
         assert_eq!(hash.as_slice(), &data);
         Ok(())
     }

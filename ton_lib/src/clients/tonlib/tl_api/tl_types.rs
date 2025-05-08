@@ -1,7 +1,7 @@
-use crate::clients::tonlib::tl_api::serial::serde_ton_address_hex;
-use crate::clients::tonlib::tl_api::serial::serde_ton_hash_b64;
-use crate::clients::tonlib::tl_api::serial::serde_ton_hash_vec_b64;
-use crate::clients::tonlib::tl_api::serial::Base64Standard;
+use crate::cell::ton_hash::ser_de::serde_ton_hash_b64;
+use crate::cell::ton_hash::ser_de::serde_ton_hash_vec_b64;
+use crate::clients::tonlib::tl_api::Base64Standard;
+use crate::types::ton_address::ser_de::serde_ton_address_hex;
 use std::borrow::Cow;
 use std::fmt::Debug;
 

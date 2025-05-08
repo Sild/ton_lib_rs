@@ -48,7 +48,7 @@ pub struct StateInit {
     pub tick_tock: Option<TickTock>,
     pub code: Option<TonCellRef>,
     pub data: Option<TonCellRef>,
-    #[tlb_derive(adapter = "TLBDict::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]
+    #[tlb_derive(adapter = "DictRef::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]
     pub library: LibsDict,
 }
 

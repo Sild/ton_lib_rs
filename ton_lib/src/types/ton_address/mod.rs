@@ -1,3 +1,5 @@
+pub mod ser_de;
+
 use crate::cell::build_parse::builder::CellBuilder;
 use crate::cell::build_parse::parser::CellParser;
 use crate::cell::ton_cell::TonCellRef;
@@ -14,7 +16,6 @@ use crate::utils::rewrite_bits;
 use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use base64::Engine;
 use crc::Crc;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
@@ -135,25 +136,6 @@ impl PartialOrd for TonAddress {
                 None
             }
         }
-    }
-}
-
-impl Serialize for TonAddress {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for TonAddress {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let str = String::deserialize(deserializer)?;
-        TonAddress::from_str(&str).map_err(serde::de::Error::custom)
     }
 }
 

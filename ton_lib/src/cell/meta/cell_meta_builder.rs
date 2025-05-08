@@ -203,7 +203,7 @@ impl<'a> CellMetaBuilder<'a> {
 
             // Calculate Hash
             let repr = self.get_repr_for_data(cur_data, cur_bit_len, level_mask, level_pos)?;
-            let hash = TonHash::from_bytes(Sha256::new_with_prefix(repr).finalize())?;
+            let hash = TonHash::from_bytes(&Sha256::new_with_prefix(repr).finalize())?;
             hashes[hash_pos] = hash;
             depths[hash_pos] = depth;
         }

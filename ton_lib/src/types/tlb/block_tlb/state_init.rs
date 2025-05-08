@@ -1,8 +1,9 @@
-use crate::cell::ton_cell::TonCellRef;
-use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterTonHash;
+use crate::types::tlb::adapters::DictRef;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
+use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterTonHash;
+use crate::types::tlb::adapters::TLBRef;
+use crate::cell::ton_cell::TonCellRef;
 use crate::types::tlb::adapters::ConstLen;
-use crate::types::tlb::adapters::TLBDict;
 use crate::types::tlb::primitives::LibsDict;
 use ton_lib_macros::TLBDerive;
 
@@ -15,7 +16,7 @@ pub struct StateInit {
     pub tick_tock: Option<TickTock>,
     pub code: Option<TonCellRef>,
     pub data: Option<TonCellRef>,
-    #[tlb_derive(adapter = "TLBDict::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]
+    #[tlb_derive(adapter = "DictRef::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]
     pub library: LibsDict,
 }
 

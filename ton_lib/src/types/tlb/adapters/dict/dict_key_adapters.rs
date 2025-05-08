@@ -26,7 +26,7 @@ impl DictKeyAdapter<TonHash> for DictKeyAdapterTonHash {
         }
         let offset = TonHash::BYTES_LEN - key_bytes.len();
         hash_bytes.as_mut_slice()[offset..].copy_from_slice(key_bytes.as_slice());
-        TonHash::from_bytes(hash_bytes)
+        TonHash::from_bytes(&hash_bytes)
     }
 }
 
