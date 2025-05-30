@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.27](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.26...ton_lib-v0.0.27) - 2025-05-30
+
+### Other
+
+- cleanup tvm_emulator
+- client module structure and naming updated ([#52](https://github.com/Sild/ton_lib_rs/pull/52))
+- Be 2452 2 ([#51](https://github.com/Sild/ton_lib_rs/pull/51))
+- Be 2452 Review/refactor boc module ([#49](https://github.com/Sild/ton_lib_rs/pull/49))
+
 ## [0.0.26](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.25...ton_lib-v0.0.26) - 2025-05-26
 
 ### Other

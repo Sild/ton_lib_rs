@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.17](https://github.com/Sild/ton_lib_rs/compare/ton_lib_macros-v0.0.16...ton_lib_macros-v0.0.17) - 2025-05-30
+
+### Other
+
+- cleanup tvm_emulator
+
 ## [0.0.16](https://github.com/Sild/ton_lib_rs/compare/ton_lib_macros-v0.0.15...ton_lib_macros-v0.0.16) - 2025-05-21
 
 ### Other
