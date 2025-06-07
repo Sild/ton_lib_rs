@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.31](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.30...ton_lib-v0.0.31) - 2025-06-07
+
+### Other
+
+- rename Ordinal -> Ord
+- add tx_emulator
+- up TonCellUtils interface
+
 ## [0.0.30](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.29...ton_lib-v0.0.30) - 2025-06-06
 
 ### Other
