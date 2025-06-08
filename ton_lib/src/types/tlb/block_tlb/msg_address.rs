@@ -34,13 +34,13 @@ pub struct MsgAddressExtern {
 }
 
 // Int
-#[derive(Debug, Clone, PartialEq, TLBDerive)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, TLBDerive)]
 pub enum MsgAddressInt {
     Std(MsgAddressIntStd),
     Var(MsgAddressIntVar),
 }
 
-#[derive(Debug, Clone, PartialEq, TLBDerive)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, TLBDerive)]
 #[tlb_derive(prefix = 0b10, bits_len = 2)]
 pub struct MsgAddressIntStd {
     pub anycast: Option<Anycast>,
@@ -50,7 +50,7 @@ pub struct MsgAddressIntStd {
 
 // peculiar object - addr_bits_len is separated from addr value,
 // so TLBType must be specified manually
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, Ord, PartialOrd, PartialEq)]
 pub struct MsgAddressIntVar {
     pub anycast: Option<Anycast>,
     pub addr_bits_len: u32, // 9 bit
@@ -122,7 +122,7 @@ mod from_impl {
     impl From<MsgAddressIntVar> for MsgAddress { fn from(value: MsgAddressIntVar) -> Self { Self::Int(value.into()) } }
 }
 
-#[derive(Debug, Clone, PartialEq, TLBDerive)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd, TLBDerive)]
 pub struct Anycast {
     pub rewrite_pfx: VarLenBits<Vec<u8>, 5>,
 }

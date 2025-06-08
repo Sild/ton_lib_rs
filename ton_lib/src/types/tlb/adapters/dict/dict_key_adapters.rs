@@ -1,5 +1,8 @@
+use crate::cell::ton_cell::TonCell;
 use crate::cell::ton_hash::TonHash;
 use crate::errors::TonlibError;
+use crate::types::tlb::block_tlb::msg_address::MsgAddressInt;
+use crate::types::tlb::TLB;
 use num_bigint::BigUint;
 
 pub trait DictKeyAdapter<K> {
@@ -9,6 +12,7 @@ pub trait DictKeyAdapter<K> {
 
 pub struct DictKeyAdapterTonHash; // properly tested in LibsDict & account
 pub struct DictKeyAdapterInto;
+pub struct DictKeyAdapterAddress;
 pub struct DictKeyAdapterString; // TODO is not covered by tests
 
 impl DictKeyAdapter<TonHash> for DictKeyAdapterTonHash {
@@ -27,6 +31,19 @@ impl DictKeyAdapter<TonHash> for DictKeyAdapterTonHash {
         let offset = TonHash::BYTES_LEN - key_bytes.len();
         hash_bytes.as_mut_slice()[offset..].copy_from_slice(key_bytes.as_slice());
         TonHash::from_slice(&hash_bytes)
+    }
+}
+
+impl DictKeyAdapter<MsgAddressInt> for DictKeyAdapterAddress {
+    fn make_key(src_key: &MsgAddressInt) -> Result<BigUint, TonlibError> {
+        let cell = src_key.to_cell()?;
+        Ok(BigUint::from_bytes_le(&cell.data))
+    }
+
+    fn extract_key(dict_key: &BigUint) -> Result<MsgAddressInt, TonlibError> {
+        let mut builder = TonCell::builder();
+        builder.write_num(dict_key, 267)?;
+        MsgAddressInt::from_cell(&builder.build()?)
     }
 }
 

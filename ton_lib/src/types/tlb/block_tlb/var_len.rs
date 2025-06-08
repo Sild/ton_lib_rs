@@ -11,7 +11,7 @@ pub type VarLenBytes<T, const LEN_BITS_LEN: usize> = VarLen<T, LEN_BITS_LEN, tru
 /// VarLen: store data len, and then data itself
 /// BITS_LEN_LEN - number of bits used to store length
 /// LEN_IN_BYTES - if true, data len is specified in bytes. Otherwise - in bits
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, Ord, PartialOrd, PartialEq)]
 pub struct VarLen<T, const LEN_BITS_LEN: usize, const LEN_IN_BYTES: bool> {
     pub data: T,
     pub bits_len: usize,
