@@ -35,6 +35,8 @@ impl CellBuilder {
         })
     }
 
+    pub fn build_ref(self) -> Result<TonCellRef, TonlibError> { Ok(self.build()?.into_ref()) }
+
     pub fn write_bit(&mut self, data: bool) -> Result<(), TonlibError> {
         self.ensure_capacity(1)?;
         self.data_writer.write_bit(data)?;

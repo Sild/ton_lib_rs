@@ -1,3 +1,4 @@
+pub mod bin_tree;
 pub mod data_builder;
 pub mod data_parser;
 pub mod dict_key_adapters;

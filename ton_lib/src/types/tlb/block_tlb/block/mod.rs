@@ -4,6 +4,7 @@ pub mod block_info;
 pub mod block_prev_info;
 pub mod mc_block_extra;
 mod shard_accounts_blocks;
+mod shard_descr;
 pub mod shard_ident;
 
 use crate::cell::ton_cell::TonCellRef;
@@ -34,6 +35,7 @@ mod tests {
     use crate::types::tlb::block_tlb::config::config_param_8::GlobalVersion;
     use crate::types::tlb::block_tlb::test_block_data::MASTER_BLOCK_BOC_HEX;
     use crate::types::tlb::TLB;
+    use std::collections::HashMap;
     use std::str::FromStr;
 
     #[test]
@@ -87,6 +89,26 @@ mod tests {
             prev_vert_ref: None,
         };
         assert_eq!(expected_block_info, parsed.info);
+
+        assert!(parsed.extra.mc_block_extra.is_some());
+
+        let expected_shards = vec![
+            (0x2000000000000000u64, 52077744),
+            (0x6000000000000000, 52097945),
+            (0x2000000000000000, 51731388),
+            (0x6000000000000000, 51757085),
+        ];
+        let parsed_shard_hashes = &parsed.extra.mc_block_extra.as_ref().unwrap().shard_hashes;
+        assert_eq!(parsed_shard_hashes.len(), 1);
+        assert!(parsed_shard_hashes.contains_key(&0));
+        let parsed_shard_descr = parsed_shard_hashes.get(&0).unwrap();
+        assert_eq!(parsed_shard_descr.len(), expected_shards.len());
+        for (i, (shard, seqno)) in expected_shards.iter().enumerate() {
+            let shard_descr = &parsed_shard_descr[i];
+            // assert_eq!(shard_descr.shard, *shard);
+            assert_eq!(shard_descr.seqno, *seqno);
+        }
+
         let serialized = parsed.to_boc()?;
         let parsed_back = Block::from_boc(&serialized)?;
         assert_eq!(parsed_back, parsed);
