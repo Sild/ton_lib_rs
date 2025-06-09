@@ -4,6 +4,7 @@ use hex::FromHexError;
 use hmac::digest::crypto_common;
 use num_bigint::BigUint;
 use std::env::VarError;
+use std::sync::Arc;
 use std::time::Duration;
 use thiserror::Error;
 use ton_liteapi::tl::request::Request;
@@ -14,6 +15,8 @@ pub enum TonlibError {
     // ton_hash
     #[error("TonHashWrongLen: Expecting {exp} bytes, got {given}")]
     TonHashWrongLen { exp: usize, given: usize },
+    #[error("TonAddressParseError: address={0}, err: {1}")]
+    TonAddressParseError(String, String),
 
     // cell_parser
     #[error("ParserDataUnderflow: Requested {req} bits, but only {left} left")]
@@ -71,9 +74,6 @@ pub enum TonlibError {
     TLBDictEmpty,
     #[error("TLBWrongData: {0}")]
     TLBWrongData(String),
-
-    #[error("TonAddressParseError: address={0}, err: {1}")]
-    TonAddressParseError(String, String),
 
     #[error("NetRequestTimeout: {msg}, timeout={timeout:?}")]
     NetRequestTimeout { msg: String, timeout: Duration },
@@ -148,8 +148,7 @@ pub enum TonlibError {
     TonContractNotActive { address: TonAddress, tx_id: Option<TxId> },
     #[error("CustomError: {0}")]
     CustomError(String),
-    #[error("UnexpectedError: {0}")]
-    UnexpectedError(#[from] Box<dyn std::error::Error + Send + Sync + 'static>),
+
     // handling external errors
     #[error("{0}")]
     IO(#[from] std::io::Error),
@@ -181,8 +180,8 @@ pub enum TonlibError {
     HmacInvalidLen(#[from] crypto_common::InvalidLength),
     #[error("{0:?}")]
     SignerError(nacl::Error),
-}
-
-impl<T> From<TonlibError> for Result<T, TonlibError> {
-    fn from(val: TonlibError) -> Self { Err(val) }
+    #[error("{0}")]
+    BoxedError(#[from] Box<dyn std::error::Error + Send + Sync>),
+    #[error("{0}")]
+    ArcTonlibError(#[from] Arc<TonlibError>),
 }

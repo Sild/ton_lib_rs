@@ -1,6 +1,8 @@
 use crate::cell::ton_hash::TonHash;
 use crate::clients::client_types::TxId;
-use crate::contracts::contract_client::contract_client_cache::{ContractClientCache, ContractClientCacheConfig};
+use crate::contracts::contract_client::contract_client_cache::{
+    ContractClientCache, ContractClientCacheConfig, ContractClientCacheStats,
+};
 use crate::contracts::contract_client::data_provider::DataProvider;
 use crate::contracts::contract_client::types::ContractState;
 use crate::emulators::emul_bc_config::EmulatorBCConfig;
@@ -12,7 +14,7 @@ use crate::types::tlb::TLB;
 use crate::types::ton_address::TonAddress;
 use std::sync::Arc;
 
-mod contract_client_cache;
+pub mod contract_client_cache;
 pub mod data_provider;
 pub mod types;
 
@@ -43,7 +45,7 @@ impl ContractClient {
     }
 
     pub async fn get_config_boc(&self, mc_seqno: Option<u32>) -> Result<EmulatorBCConfig, TonlibError> {
-        self.inner.data_provider.get_config_boc(mc_seqno).await
+        EmulatorBCConfig::from_boc(&self.inner.data_provider.get_config_boc(mc_seqno).await?)
     }
 
     pub async fn get_libs_boc(&self, lib_ids: &[TonHash]) -> Result<Option<Vec<u8>>, TonlibError> {
@@ -62,9 +64,7 @@ impl ContractClient {
         self.inner.data_provider.run_get_method(address, &method.into().as_str(), stack.to_boc()?).await
     }
 
-    // pub async fn get_account_state_raw(&self, address: &TonAddress) -> Result<TLRawFullAccountState, TonlibError> {
-    //     self.inner.data_provider.get_account_state_raw(address).await
-    // }
+    pub fn get_cache_stats(&self) -> ContractClientCacheStats { self.inner.cache.get_stats() }
 }
 
 struct Inner {
