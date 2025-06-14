@@ -15,7 +15,7 @@ async fn test_lite_client() -> anyhow::Result<()> {
     let lite_client = make_lite_client(true).await?;
 
     // generic interface
-    let mc_info_rsp = lite_client.exec(Request::GetMasterchainInfo, None).await?;
+    let mc_info_rsp = lite_client.exec(Request::GetMasterchainInfo, None, None).await?;
     let mc_info_generic = unwrap_lite_response!(mc_info_rsp, MasterchainInfo)?;
     assert_ne!(mc_info_generic.last.seqno, 0);
 
@@ -48,7 +48,7 @@ pub async fn make_lite_client(mainnet: bool) -> anyhow::Result<LiteClient> {
     init_logging();
     log::info!("initializing lite_client with mainnet={mainnet}...");
     let mut config = LiteClientConfig::new(&TonNetConfig::get_json(mainnet))?;
-    config.retry_count = 20;
-    config.retry_waiting = Duration::from_millis(200);
+    config.default_req_params.retries_count = 20;
+    config.default_req_params.retry_waiting = Duration::from_millis(200);
     Ok(LiteClient::new(config)?)
 }

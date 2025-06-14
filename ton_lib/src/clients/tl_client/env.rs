@@ -32,7 +32,7 @@ async fn update_init_block(config: &mut TLClientConfig) -> Result<(), TonlibErro
     for _ in lite_config.net_config.lite_endpoints.iter() {
         let future = async {
             let mc_info = lite_client_ref.get_mc_info().await?;
-            let block = lite_client_ref.get_block(mc_info.last).await?;
+            let block = lite_client_ref.get_block(mc_info.last, None).await?;
             let seqno = parse_key_block_seqno(&block)?;
             lite_client_ref.lookup_mc_block(seqno).await
         };

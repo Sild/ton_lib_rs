@@ -41,7 +41,7 @@ impl BlockStream {
 
     pub async fn get_shard_ids(&mut self, mc_seqno: u32) -> Result<Vec<BlockIdExt>, TonlibError> {
         let mc_block_id = self.client.lookup_mc_block(mc_seqno).await?;
-        let block_data = self.client.get_block(mc_block_id).await?;
+        let block_data = self.client.get_block(mc_block_id, None).await?;
         extract_unseen_ids(&Block::from_boc(&block_data.data)?, &self.prev_shards)
     }
 }

@@ -35,7 +35,7 @@ mod tests {
     use crate::types::tlb::block_tlb::config::config_param_8::GlobalVersion;
     use crate::types::tlb::block_tlb::test_block_data::MASTER_BLOCK_BOC_HEX;
     use crate::types::tlb::TLB;
-    use std::collections::HashMap;
+
     use std::str::FromStr;
 
     #[test]
@@ -92,7 +92,7 @@ mod tests {
 
         assert!(parsed.extra.mc_block_extra.is_some());
 
-        let expected_shards = vec![
+        let expected_shards = [
             (0x2000000000000000u64, 52077744),
             (0x6000000000000000, 52097945),
             (0x2000000000000000, 51731388),

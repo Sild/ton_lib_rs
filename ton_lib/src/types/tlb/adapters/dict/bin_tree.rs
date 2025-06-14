@@ -8,6 +8,10 @@ use std::marker::PhantomData;
 
 pub struct BinTree<VA: DictValAdapter<T>, T: TLB>(PhantomData<(VA, T)>);
 
+impl<VA: DictValAdapter<T>, T: TLB> Default for BinTree<VA, T> {
+    fn default() -> Self { Self::new() }
+}
+
 impl<VA: DictValAdapter<T>, T: TLB> BinTree<VA, T> {
     pub fn new() -> Self { Self(PhantomData) }
 

@@ -45,7 +45,7 @@ impl TLB for ShardDescr {
         let prefix = match parser.read_num::<u8>(4)? {
             0xb => ShardDescrPrefix::Old,
             0xa => ShardDescrPrefix::New,
-            x => return Err(TonlibError::TLBWrongData("Invalid ShardDescr prefix: {x}".to_string())),
+            x => return Err(TonlibError::TLBWrongData(format!("Invalid ShardDescr prefix: {x}"))),
         };
         let seqno = TLB::read(parser)?;
         let reg_mc_seqno = TLB::read(parser)?;
