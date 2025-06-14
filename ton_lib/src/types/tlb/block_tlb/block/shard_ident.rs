@@ -4,9 +4,10 @@ use crate::cell::build_parse::parser::CellParser;
 use crate::errors::TonlibError;
 use crate::types::tlb::block_tlb::msg_address::MsgAddressInt;
 use crate::types::tlb::{TLBPrefix, TLB};
+use std::fmt::{Debug, Display};
 
 // TLBType implementation is quite tricky, it doesn't keep shard as is
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct ShardIdent {
     pub wc: i32,
     pub shard: u64,
@@ -31,22 +32,8 @@ impl ShardIdent {
         if self.shard == TON_SHARD_FULL {
             return true;
         }
-        todo!("is not implemented yet");
-        // let prefix_len = self.prefix_len();
-        // let shard_pfx = self.shard >> (64 - prefix_len);
-        // let addr_pfx = addr.address_hash() >> (64 - prefix_len);
-        // addr_pfx == shard_pfx
-        // if self.prefix == SHARD_FULL {
-        //     true
-        // } else {
-        //     // compare shard prefix and first bits of address
-        //     // (take as many bits of the address as the bits in the prefix)
-        //     let len = self.prefix_len();
-        //     let addr_pfx = acc_addr.get_next_int(len as usize)?;
-        //     let shard_pfx = self.prefix >> (64 - len);
-        //     addr_pfx == shard_pfx
-        // }
-        // self.wc != addr.wc() && (self.shard & addr.shard) == addr.shard
+        let pfx_len_bits = self.prefix_len();
+        bits_equal(&self.shard.to_be_bytes(), &addr.address_hash(), pfx_len_bits as usize)
     }
 }
 
@@ -81,11 +68,43 @@ impl TLB for ShardIdent {
     }
 }
 
+impl Debug for ShardIdent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "{self}") }
+}
+
+impl Display for ShardIdent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", format!("ShardIdent(wc: {}, shard: 0x{:016X})", self.wc, self.shard))
+    }
+}
+
+fn bits_equal(left: &[u8], right: &[u8], bits_len: usize) -> bool {
+    let bytes_len = (bits_len + 7) / 8;
+    if left.len() < bytes_len || right.len() < bytes_len {
+        return false;
+    }
+    let rest = bits_len % 8;
+    if rest == 0 {
+        return left[0..bytes_len] == right[0..bytes_len];
+    }
+
+    let left_bits = &left[0..bytes_len - 1];
+    let right_bits = &right[0..bytes_len - 1];
+    if left_bits != right_bits {
+        return false;
+    }
+    let left_last_byte = left[bytes_len - 1] >> (8 - bits_len % 8);
+    let right_last_byte = right[bytes_len - 1] >> (8 - bits_len % 8);
+    left_last_byte == right_last_byte
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::bc_constants::{TON_MASTERCHAIN_ID, TON_SHARD_FULL};
     use crate::cell::ton_cell::TonCell;
+    use crate::types::ton_address::TonAddress;
+    use std::str::FromStr;
 
     #[test]
     fn test_block_tlb_shard_ident_master() -> anyhow::Result<()> {
@@ -139,6 +158,34 @@ mod tests {
         let (left3, right3) = right.split()?;
         assert_eq!(left3.shard, 0xa000000000000000);
         assert_eq!(right3.shard, 0xe000000000000000);
+        Ok(())
+    }
+
+    #[test]
+    fn test_bits_equal() -> anyhow::Result<()> {
+        let left_ = [0b11001100, 0b10101010, 0b11110100];
+        let right = [0b11001100, 0b10101010, 0b11110000];
+        assert!(bits_equal(&left_, &right, 3));
+        assert!(bits_equal(&left_, &right, 8));
+        assert!(bits_equal(&left_, &right, 15));
+        assert!(bits_equal(&left_, &right, 20));
+        assert!(bits_equal(&left_, &right, 21));
+        assert!(!bits_equal(&left_, &right, 22));
+        assert!(!bits_equal(&left_, &right, 23));
+        assert!(!bits_equal(&left_, &right, 24));
+        assert!(!bits_equal(&left_, &right, 25));
+        Ok(())
+    }
+
+    #[test]
+    fn test_shard_ident_contains_addr() -> anyhow::Result<()> {
+        let addr = TonAddress::from_str("EQDc_nrm5oOVCVQM8GRJ5q_hr1jgpNQjsGkIGE-uztt26_Ep")?;
+
+        let shard_ident = ShardIdent::new(0, 0x8000000000000000);
+        assert!(shard_ident.contains_addr(&addr.to_msg_address_int()));
+        let (left, right) = shard_ident.split()?;
+        assert!(!left.contains_addr(&addr.to_msg_address_int()), "shard: {left}, addr: {}", addr.to_hex());
+        assert!(right.contains_addr(&addr.to_msg_address_int()), "shard: {right}, addr: {}", addr.to_hex());
         Ok(())
     }
 }
