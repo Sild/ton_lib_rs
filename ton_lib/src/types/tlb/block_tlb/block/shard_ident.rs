@@ -6,6 +6,12 @@ use crate::types::tlb::block_tlb::msg_address::MsgAddressInt;
 use crate::types::tlb::{TLBPrefix, TLB};
 use std::fmt::{Debug, Display};
 
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+pub struct ShardPfx {
+    pub value: u64,
+    pub bits_len: u32,
+}
+
 // TLBType implementation is quite tricky, it doesn't keep shard as is
 #[derive(Clone, Eq, Hash, PartialEq)]
 pub struct ShardIdent {
@@ -13,8 +19,20 @@ pub struct ShardIdent {
     pub shard: u64,
 }
 
+impl ShardPfx {
+    pub fn to_shard(&self) -> u64 {
+        let tag = 1u64 << (63 - self.bits_len);
+        (self.value & (!tag).wrapping_add(1)) | tag
+    }
+}
+
+impl Default for ShardPfx { fn default() -> Self { Self { value: 1, bits_len: 1 } } }
+
+
+
 impl ShardIdent {
     pub fn new(wc: i32, shard: u64) -> Self { Self { wc, shard } }
+    pub fn from_pfx(wc: i32, shard_pfx: &ShardPfx) -> Self { Self { wc, shard: shard_pfx.to_shard() } }
     pub fn new_mc() -> Self { Self::new(TON_MASTERCHAIN_ID, TON_SHARD_FULL) }
     pub fn prefix_len(&self) -> u32 { 63u32 - self.shard.trailing_zeros() }
     pub fn split(&self) -> Result<(ShardIdent, ShardIdent), TonlibError> {
@@ -45,15 +63,17 @@ impl TLB for ShardIdent {
     const PREFIX: TLBPrefix = TLBPrefix::new(0b00, 2);
 
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
-        let prefix_len_bits: u32 = parser.read_num(6)?;
-        if prefix_len_bits > MAX_SPLIT_DEPTH as u32 {
-            return Err(TonlibError::TLBWrongData(format!("expecting prefix_len <= 60, got {prefix_len_bits}")));
+        let pfx_bits_len: u32 = parser.read_num(6)?;
+        if pfx_bits_len > MAX_SPLIT_DEPTH as u32 {
+            return Err(TonlibError::TLBWrongData(format!("expecting prefix_len <= 60, got {pfx_bits_len}")));
         }
-        let workchain = parser.read_num(32)?;
+        let wc = parser.read_num(32)?;
         let shard_prefix: u64 = parser.read_num(64)?;
-        let tag = 1u64 << (63 - prefix_len_bits);
-        let shard = (shard_prefix & (!tag).wrapping_add(1)) | tag;
-        Ok(Self { wc: workchain, shard })
+        let shard_pfx = ShardPfx {
+            value: shard_prefix,
+            bits_len: pfx_bits_len,
+        };
+        Ok(Self::from_pfx(wc, &shard_pfx))
     }
 
     fn write_definition(&self, builder: &mut CellBuilder) -> Result<(), TonlibError> {

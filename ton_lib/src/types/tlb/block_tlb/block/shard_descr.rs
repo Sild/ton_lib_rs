@@ -8,7 +8,7 @@ use crate::types::tlb::TLB;
 use ton_lib_macros::TLBDerive;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ShardDescrPrefix {
+pub enum ShardDescrTag {
     Old,
     New,
 }
@@ -16,7 +16,7 @@ pub enum ShardDescrPrefix {
 // https://github.com/ton-blockchain/ton/blame/26761a1d139402ef343081810677d2582c3eff51/crypto/block/block.tlb#L509
 #[derive(Debug, Clone, PartialEq)]
 pub struct ShardDescr {
-    pub prefix: ShardDescrPrefix,
+    pub prefix: ShardDescrTag, // in fact it's TLBPrefix
     pub seqno: u32,
     pub reg_mc_seqno: u32,
     pub start_lt: u64,
@@ -37,14 +37,14 @@ pub struct ShardDescr {
     pub funds_created: CurrencyCollection,
 }
 
-// there is a enum, but structures almost the same (except format)
+// there is a enum, but structures are almost the same (except format)
 // so implement TLB manually, including prefix handling
 // (define `read` and `write` as well)
 impl TLB for ShardDescr {
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
         let prefix = match parser.read_num::<u8>(4)? {
-            0xb => ShardDescrPrefix::Old,
-            0xa => ShardDescrPrefix::New,
+            0xb => ShardDescrTag::Old,
+            0xa => ShardDescrTag::New,
             x => return Err(TonlibError::TLBWrongData(format!("Invalid ShardDescr prefix: {x}"))),
         };
         let seqno = TLB::read(parser)?;
@@ -65,8 +65,8 @@ impl TLB for ShardDescr {
         let gen_utime = TLB::read(parser)?;
         let split_merge_at = TLB::read(parser)?;
         let (fees, funds) = match prefix {
-            ShardDescrPrefix::Old => (TLB::read(parser)?, TLB::read(parser)?),
-            ShardDescrPrefix::New => {
+            ShardDescrTag::Old => (TLB::read(parser)?, TLB::read(parser)?),
+            ShardDescrTag::New => {
                 let mut ref_parser = parser.read_next_ref()?.parser();
                 (TLB::read(&mut ref_parser)?, TLB::read(&mut ref_parser)?)
             }
@@ -95,8 +95,8 @@ impl TLB for ShardDescr {
     }
     fn write_definition(&self, builder: &mut CellBuilder) -> Result<(), TonlibError> {
         let prefix = match self.prefix {
-            ShardDescrPrefix::Old => 0xb,
-            ShardDescrPrefix::New => 0xa,
+            ShardDescrTag::Old => 0xb,
+            ShardDescrTag::New => 0xa,
         };
         builder.write_num(&prefix, 4)?;
         self.seqno.write(builder)?;
@@ -118,11 +118,11 @@ impl TLB for ShardDescr {
         self.split_merge_at.write(builder)?;
 
         match &self.prefix {
-            ShardDescrPrefix::Old => {
+            ShardDescrTag::Old => {
                 self.fees_collected.write(builder)?;
                 self.funds_created.write(builder)?;
             }
-            ShardDescrPrefix::New => {
+            ShardDescrTag::New => {
                 let mut ref_builder = TonCell::builder();
                 self.fees_collected.write(&mut ref_builder)?;
                 self.funds_created.write(&mut ref_builder)?;
