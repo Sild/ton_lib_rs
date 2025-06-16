@@ -1,10 +1,17 @@
 use crate::bc_constants::{MAX_SPLIT_DEPTH, TON_MASTERCHAIN_ID, TON_SHARD_FULL};
+use crate::bits_utils::bits_equal;
 use crate::cell::build_parse::builder::CellBuilder;
 use crate::cell::build_parse::parser::CellParser;
 use crate::errors::TonlibError;
 use crate::types::tlb::block_tlb::msg_address::MsgAddressInt;
 use crate::types::tlb::{TLBPrefix, TLB};
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, Formatter};
+
+#[derive(Clone, Eq, Hash, PartialEq)]
+pub struct ShardPfx {
+    pub value: u64,
+    pub bits_len: u32,
+}
 
 // TLBType implementation is quite tricky, it doesn't keep shard as is
 #[derive(Clone, Eq, Hash, PartialEq)]
@@ -13,8 +20,30 @@ pub struct ShardIdent {
     pub shard: u64,
 }
 
+impl ShardPfx {
+    pub fn to_shard(&self) -> u64 {
+        let tag = 1u64 << (63 - self.bits_len);
+        (self.value & (!tag).wrapping_add(1)) | tag
+    }
+}
+
+impl Default for ShardPfx {
+    fn default() -> Self { Self { value: 0, bits_len: 0 } }
+}
+impl Debug for ShardPfx {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ShardPfx(value: 0x{:016X}, bits_len: {})", self.value, self.bits_len)
+    }
+}
+
 impl ShardIdent {
     pub fn new(wc: i32, shard: u64) -> Self { Self { wc, shard } }
+    pub fn from_pfx(wc: i32, shard_pfx: &ShardPfx) -> Self {
+        Self {
+            wc,
+            shard: shard_pfx.to_shard(),
+        }
+    }
     pub fn new_mc() -> Self { Self::new(TON_MASTERCHAIN_ID, TON_SHARD_FULL) }
     pub fn prefix_len(&self) -> u32 { 63u32 - self.shard.trailing_zeros() }
     pub fn split(&self) -> Result<(ShardIdent, ShardIdent), TonlibError> {
@@ -45,15 +74,17 @@ impl TLB for ShardIdent {
     const PREFIX: TLBPrefix = TLBPrefix::new(0b00, 2);
 
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
-        let prefix_len_bits: u32 = parser.read_num(6)?;
-        if prefix_len_bits > MAX_SPLIT_DEPTH as u32 {
-            return Err(TonlibError::TLBWrongData(format!("expecting prefix_len <= 60, got {prefix_len_bits}")));
+        let pfx_bits_len: u32 = parser.read_num(6)?;
+        if pfx_bits_len > MAX_SPLIT_DEPTH as u32 {
+            return Err(TonlibError::TLBWrongData(format!("expecting prefix_len <= 60, got {pfx_bits_len}")));
         }
-        let workchain = parser.read_num(32)?;
+        let wc = parser.read_num(32)?;
         let shard_prefix: u64 = parser.read_num(64)?;
-        let tag = 1u64 << (63 - prefix_len_bits);
-        let shard = (shard_prefix & (!tag).wrapping_add(1)) | tag;
-        Ok(Self { wc: workchain, shard })
+        let shard_pfx = ShardPfx {
+            value: shard_prefix,
+            bits_len: pfx_bits_len,
+        };
+        Ok(Self::from_pfx(wc, &shard_pfx))
     }
 
     fn write_definition(&self, builder: &mut CellBuilder) -> Result<(), TonlibError> {
@@ -69,33 +100,13 @@ impl TLB for ShardIdent {
 }
 
 impl Debug for ShardIdent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "{self}") }
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result { write!(f, "{self}") }
 }
 
 impl Display for ShardIdent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", format!("ShardIdent(wc: {}, shard: 0x{:016X})", self.wc, self.shard))
     }
-}
-
-fn bits_equal(left: &[u8], right: &[u8], bits_len: usize) -> bool {
-    let bytes_len = (bits_len + 7) / 8;
-    if left.len() < bytes_len || right.len() < bytes_len {
-        return false;
-    }
-    let rest = bits_len % 8;
-    if rest == 0 {
-        return left[0..bytes_len] == right[0..bytes_len];
-    }
-
-    let left_bits = &left[0..bytes_len - 1];
-    let right_bits = &right[0..bytes_len - 1];
-    if left_bits != right_bits {
-        return false;
-    }
-    let left_last_byte = left[bytes_len - 1] >> (8 - bits_len % 8);
-    let right_last_byte = right[bytes_len - 1] >> (8 - bits_len % 8);
-    left_last_byte == right_last_byte
 }
 
 #[cfg(test)]
@@ -132,7 +143,7 @@ mod tests {
         builder.write_num(&0u32, 2)?; // ShardIdent prefix
         builder.write_num(&2u32, 6)?; // shard_pfx_bits
         builder.write_num(&0i32, 32)?; // workchain
-        builder.write_num(&4611686018427387904u64, 64)?; // shard_prefix
+        builder.write_num(&4611686018427387904u64, 64)?; // shard_prefix, 0x4000000000000000u64
         let shard_shard_ident_cell = builder.build()?;
         let mc_shard_ident_parsed = ShardIdent::from_cell(&shard_shard_ident_cell)?;
         assert_eq!(mc_shard_ident_parsed.wc, 0);
@@ -158,22 +169,6 @@ mod tests {
         let (left3, right3) = right.split()?;
         assert_eq!(left3.shard, 0xa000000000000000);
         assert_eq!(right3.shard, 0xe000000000000000);
-        Ok(())
-    }
-
-    #[test]
-    fn test_bits_equal() -> anyhow::Result<()> {
-        let left_ = [0b11001100, 0b10101010, 0b11110100];
-        let right = [0b11001100, 0b10101010, 0b11110000];
-        assert!(bits_equal(&left_, &right, 3));
-        assert!(bits_equal(&left_, &right, 8));
-        assert!(bits_equal(&left_, &right, 15));
-        assert!(bits_equal(&left_, &right, 20));
-        assert!(bits_equal(&left_, &right, 21));
-        assert!(!bits_equal(&left_, &right, 22));
-        assert!(!bits_equal(&left_, &right, 23));
-        assert!(!bits_equal(&left_, &right, 24));
-        assert!(!bits_equal(&left_, &right, 25));
         Ok(())
     }
 

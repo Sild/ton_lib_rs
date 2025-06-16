@@ -34,14 +34,14 @@ pub trait DataProvider: Send + Sync {
 
 pub struct TLDataProvider {
     tl_client: TLClient,
-    block_stream: BlockStream,
+    _block_stream: BlockStream,
 }
 
 impl TLDataProvider {
     pub fn new(tl_client: TLClient, block_stream: BlockStream) -> Self {
         Self {
             tl_client,
-            block_stream,
+            _block_stream: block_stream,
         }
     }
 }
@@ -91,16 +91,16 @@ impl DataProvider for TLDataProvider {
         libs_dict.map(|x| x.to_boc()).transpose()
     }
 
-    async fn get_latest_txs(&self, mc_seqno: u32) -> Result<HashMap<TonAddress, TxId>, TonlibError> {
+    async fn get_latest_txs(&self, _mc_seqno: u32) -> Result<HashMap<TonAddress, TxId>, TonlibError> {
         // let block_txs = self.0.get_b
         todo!()
     }
 
     async fn run_get_method(
         &self,
-        address: &TonAddress,
-        method: &str,
-        stack_boc: Vec<u8>,
+        _address: &TonAddress,
+        _method: &str,
+        _stack_boc: Vec<u8>,
     ) -> Result<TVMRunGetMethodSuccess, TonlibError> {
         todo!()
     }

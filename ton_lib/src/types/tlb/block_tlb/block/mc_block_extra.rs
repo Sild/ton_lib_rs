@@ -9,7 +9,7 @@ use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
 use crate::types::tlb::adapters::DictRef;
 use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
 use crate::types::tlb::block_tlb::block::shard_descr::ShardDescr;
-use crate::types::tlb::block_tlb::block::shard_ident::ShardIdent;
+use crate::types::tlb::block_tlb::block::shard_ident::{ShardIdent, ShardPfx};
 use crate::types::tlb::block_tlb::coins::CurrencyCollection;
 use crate::types::tlb::block_tlb::config::config_params::ConfigParams;
 use crate::types::tlb::{TLBPrefix, TLB};
@@ -20,7 +20,7 @@ use ton_lib_macros::TLBDerive;
 #[derive(Debug, Clone, PartialEq)]
 pub struct MCBlockExtra {
     pub key_block: bool,
-    pub shard_hashes: HashMap<i32, Vec<ShardDescr>>, // wc_id -> Vec<ShardDescr>
+    pub shard_hashes: HashMap<i32, HashMap<ShardPfx, ShardDescr>>, // wc_id -> shard_pfx -> ShardDescr
     pub shard_fees: Option<TonCellRef>,
     shard_fees_crated: ShardFeesCreated, // this is a mock to read/write cell properly while we don't support a fair HashmapAugE
     // https://github.com/ton-blockchain/ton/blob/6f745c04daf8861bb1791cffce6edb1beec62204/crypto/block/block.tlb#L597
@@ -32,16 +32,12 @@ impl MCBlockExtra {
     pub fn shard_ids(&self) -> Vec<BlockIdExt> {
         let mut shard_ids = vec![];
         for (wc, shards) in &self.shard_hashes {
-            for shard in shards {
-                let shard_prefix = 0;
+            for (shard_pfx, descr) in shards {
                 shard_ids.push(BlockIdExt {
-                    shard_id: ShardIdent {
-                        wc: *wc,
-                        shard: shard_prefix,
-                    },
-                    seqno: shard.seqno,
-                    root_hash: TonHash::from_slice_sized(shard.root_hash.as_slice_sized()),
-                    file_hash: TonHash::from_slice_sized(shard.file_hash.as_slice_sized()),
+                    shard_id: ShardIdent::from_pfx(*wc, shard_pfx),
+                    seqno: descr.seqno,
+                    root_hash: TonHash::from_slice_sized(descr.root_hash.as_slice_sized()),
+                    file_hash: TonHash::from_slice_sized(descr.file_hash.as_slice_sized()),
                 });
             }
         }

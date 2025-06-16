@@ -7,6 +7,7 @@ pub mod clients;
 #[cfg(feature = "contracts")]
 pub mod contracts;
 
+mod bits_utils;
 #[cfg(feature = "emulator")]
 pub mod emulators;
 pub mod errors;

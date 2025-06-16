@@ -12,6 +12,7 @@ impl TLB for TonCell {
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
         let bits_remaining = parser.data_bits_remaining()?;
         if parser.cell.data_bits_len == bits_remaining && parser.next_ref_pos == 0 {
+            // optimization - just clone cell if parser has initial state
             let _data = parser.read_bits(bits_remaining)?; // drain data
             parser.next_ref_pos = parser.cell.refs.len(); // drain refs
             Ok(parser.cell.clone())

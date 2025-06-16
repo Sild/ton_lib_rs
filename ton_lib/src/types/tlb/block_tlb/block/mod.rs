@@ -35,11 +35,12 @@ mod tests {
     use crate::types::tlb::block_tlb::config::config_param_8::GlobalVersion;
     use crate::types::tlb::block_tlb::test_block_data::MASTER_BLOCK_BOC_HEX;
     use crate::types::tlb::TLB;
+    use std::collections::HashMap;
 
     use std::str::FromStr;
 
     #[test]
-    fn test_block_tbl_block() -> anyhow::Result<()> {
+    fn test_block_tlb_block() -> anyhow::Result<()> {
         let parsed = Block::from_boc_hex(MASTER_BLOCK_BOC_HEX)?;
         assert_eq!(
             parsed.extra.mc_block_extra.as_ref().unwrap().cell_hash()?,
@@ -49,6 +50,7 @@ mod tests {
             parsed.cell_hash()?,
             TonHash::from_str("CBEBAA6AC4270C987C90C5ED930FF37F9B73C705999585D6D8C1C5E9FA3DD6E3")?
         );
+        // test block.info
         let expected_block_info = BlockInfo {
             version: 0,
             not_master: false,
@@ -92,26 +94,33 @@ mod tests {
 
         assert!(parsed.extra.mc_block_extra.is_some());
 
-        let expected_shards = [
+        // test block.extra.mc_block_extra.shard_hashes
+        let expected_shards = HashMap::from([
             (0x2000000000000000u64, 52077744),
             (0x6000000000000000, 52097945),
-            (0x2000000000000000, 51731388),
-            (0x6000000000000000, 51757085),
-        ];
+            (0xa000000000000000, 51731388),
+            (0xe000000000000000, 51757085),
+        ]);
         let parsed_shard_hashes = &parsed.extra.mc_block_extra.as_ref().unwrap().shard_hashes;
         assert_eq!(parsed_shard_hashes.len(), 1);
         assert!(parsed_shard_hashes.contains_key(&0));
         let parsed_shard_descr = parsed_shard_hashes.get(&0).unwrap();
         assert_eq!(parsed_shard_descr.len(), expected_shards.len());
-        for (i, (shard, seqno)) in expected_shards.iter().enumerate() {
-            let shard_descr = &parsed_shard_descr[i];
-            // assert_eq!(shard_descr.shard, *shard);
-            assert_eq!(shard_descr.seqno, *seqno);
+        for (shard_pfx, descr) in parsed_shard_descr {
+            let shard = shard_pfx.to_shard();
+            assert!(expected_shards.contains_key(&shard), "shard: {shard:X}, shard_pfx: {shard_pfx:?}");
+            let expected_seqno = expected_shards.get(&shard).unwrap();
+            assert_eq!(*expected_seqno, descr.seqno);
         }
 
+        // full serialization test
         let serialized = parsed.to_boc()?;
         let parsed_back = Block::from_boc(&serialized)?;
         assert_eq!(parsed_back, parsed);
+        assert_eq!(
+            parsed_back.cell_hash()?,
+            TonHash::from_str("CBEBAA6AC4270C987C90C5ED930FF37F9B73C705999585D6D8C1C5E9FA3DD6E3")?
+        );
         Ok(())
     }
 }

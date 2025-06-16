@@ -11,6 +11,7 @@ use crate::types::tlb::block_tlb::msg_address::{
 use crate::types::tlb::block_tlb::state_init::StateInit;
 use crate::types::tlb::TLB;
 
+use crate::bits_utils::bits_rewrite;
 use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use base64::Engine;
 use crc::Crc;
@@ -219,7 +220,7 @@ fn from_msg_address_int(msg_address: &MsgAddressInt) -> Result<TonAddress, Tonli
     let bits = anycast.rewrite_pfx.bits_len;
     let mut addr_mutable = addr.to_vec();
 
-    if !rewrite_bits(new_prefix, 0, addr_mutable.as_mut_slice(), 0, bits) {
+    if !bits_rewrite(new_prefix, 0, addr_mutable.as_mut_slice(), 0, bits) {
         let err_msg = format!(
             "Failed to rewrite address prefix with new_prefix={new_prefix:?}, address={msg_address:?}, bits={bits}"
         );
@@ -234,61 +235,9 @@ fn raise_address_error<T: AsRef<str>>(address: &str, msg: T) -> Result<(), Tonli
     Err(TonAddressParseError(address.to_string(), msg.as_ref().to_string()))
 }
 
-// return false if preconditions are not met
-fn rewrite_bits(src: &[u8], src_offset_bits: usize, dst: &mut [u8], dst_offset_bits: usize, len: usize) -> bool {
-    // Calculate total bits available in source and destination
-    let src_total_bits = src.len() * 8;
-    let dst_total_bits = dst.len() * 8;
-
-    // Check preconditions
-    if src_offset_bits + len > src_total_bits || dst_offset_bits + len > dst_total_bits {
-        return false;
-    }
-
-    for i in 0..len {
-        // Calculate the source bit position and extract the bit
-        let src_bit_pos = src_offset_bits + i;
-        let src_byte_index = src_bit_pos / 8;
-        let src_bit_offset = 7 - (src_bit_pos % 8); // MSB is bit 7
-        let src_bit = (src[src_byte_index] >> src_bit_offset) & 1;
-
-        // Calculate the destination bit position and write the bit
-        let dst_bit_pos = dst_offset_bits + i;
-        let dst_byte_index = dst_bit_pos / 8;
-        let dst_bit_offset = 7 - (dst_bit_pos % 8); // MSB is bit 7
-
-        // Clear the target bit and set it to the source bit value
-        dst[dst_byte_index] &= !(1 << dst_bit_offset); // Clear the bit
-        dst[dst_byte_index] |= src_bit << dst_bit_offset; // Set the bit
-    }
-
-    true
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_rewrite_bits() {
-        let src = vec![0b11001100, 0b10101010]; // Source bits
-        let mut dst = vec![0b00000000, 0b00000000]; // Destination bits
-        assert!(rewrite_bits(&src, 4, &mut dst, 8, 8));
-        assert_eq!(dst, vec![0b00000000, 0b11001010]);
-
-        let src = vec![0b11001100, 0b10101010]; // Source bits
-        let mut dst = vec![0b00000000, 0b00000000]; // Destination bits
-        assert!(rewrite_bits(&src, 0, &mut dst, 0, 16));
-        assert_eq!(dst, src);
-
-        let src = vec![0b11001100, 0b10101010]; // Source bits
-        let mut dst = vec![0b00000000, 0b00000000]; // Destination bits
-        assert!(rewrite_bits(&src, 0, &mut dst, 0, 8));
-        assert_eq!(dst[0], src[0]);
-        assert_eq!(dst[1], 0b00000000);
-
-        assert!(!rewrite_bits(&src, 14, &mut dst, 6, 10));
-    }
 
     use crate::cell::ton_cell::TonCell;
     use tokio_test::{assert_err, assert_ok};
