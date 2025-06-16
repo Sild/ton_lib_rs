@@ -7,8 +7,8 @@ use async_trait::async_trait;
 use rand::prelude::{IndexedRandom, StdRng};
 use rand::SeedableRng;
 use std::ops::DerefMut;
-use std::sync::Arc;
-use tokio::sync::{Mutex, Semaphore};
+use std::sync::{Arc, Mutex};
+use tokio::sync::{Semaphore};
 
 // /// Simple client with many connections
 #[derive(Clone)]
@@ -24,8 +24,8 @@ struct Inner {
 
 #[async_trait]
 impl TLClientTrait for TLClient {
-    async fn get_connection(&self) -> &TLConnection {
-        let mut rng_lock = self.inner.rnd.lock().await;
+    fn get_connection(&self) -> &TLConnection {
+        let mut rng_lock = self.inner.rnd.lock().unwrap();
         self.inner.connections.choose(&mut rng_lock.deref_mut()).unwrap()
     }
 

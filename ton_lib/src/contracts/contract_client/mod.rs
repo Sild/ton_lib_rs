@@ -17,6 +17,8 @@ use std::sync::Arc;
 pub mod contract_client_cache;
 pub mod data_provider;
 pub mod types;
+#[allow(unused)]
+pub mod block_stream;
 
 pub struct ContractClient {
     inner: Arc<Inner>,

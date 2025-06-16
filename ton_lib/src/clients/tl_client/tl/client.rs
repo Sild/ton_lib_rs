@@ -23,13 +23,13 @@ use tokio_retry::RetryIf;
 
 #[async_trait]
 pub trait TLClientTrait: Send + Sync {
-    async fn get_connection(&self) -> &TLConnection;
+    fn get_connection(&self) -> &TLConnection;
 
     async fn exec(&self, req: &TLRequest) -> Result<TLResponse, TonlibError> {
         let retry_strat = self.get_retry_strategy();
         let fi = FixedInterval::new(retry_strat.retry_waiting);
         let strategy = fi.take(retry_strat.retry_count);
-        RetryIf::spawn(strategy, || async { self.get_connection().await.exec_impl(req).await }, retry_condition).await
+        RetryIf::spawn(strategy, || async { self.get_connection().exec_impl(req).await }, retry_condition).await
     }
 
     async fn get_mc_info(&self) -> Result<TLBlocksMCInfo, TonlibError> {
@@ -129,51 +129,6 @@ pub trait TLClientTrait: Send + Sync {
         unwrap_tl_response!(self.exec(&req).await?, TLBlockIdExt)
     }
 
-    // async fn smc_load(
-    //     &self,
-    //     account_address: &TonAddress,
-    // ) -> Result<LoadedSmcState, TonClientError> {
-    //     let func = TonFunction::SmcLoad {
-    //         account_address: AccountAddress {
-    //             account_address: account_address.to_hex(),
-    //         },
-    //     };
-    //     let (conn, result) = self.invoke_on_connection(&func).await?;
-    //     match result {
-    //         TonResult::SmcInfo(smc_info) => Ok(LoadedSmcState {
-    //             conn,
-    //             id: smc_info.id,
-    //         }),
-    //         r => Err(TonClientError::unexpected_ton_result(
-    //             TonResultDiscriminants::SmcInfo,
-    //             r,
-    //         )),
-    //     }
-    // }
-    // async fn smc_load_by_transaction(
-    //     &self,
-    //     address: &TonAddress,
-    //     tx_id: &InternalTransactionId,
-    // ) -> Result<LoadedSmcState, TonClientError> {
-    //     let func = TonFunction::SmcLoadByTransaction {
-    //         account_address: AccountAddress {
-    //             account_address: address.to_hex(),
-    //         },
-    //         transaction_id: tx_id.clone(),
-    //     };
-    //     let (conn, result) = self.invoke_on_connection(&func).await?;
-    //     match result {
-    //         TonResult::SmcInfo(smc_info) => Ok(LoadedSmcState {
-    //             conn,
-    //             id: smc_info.id,
-    //         }),
-    //         r => Err(TonClientError::unexpected_ton_result(
-    //             TonResultDiscriminants::SmcInfo,
-    //             r,
-    //         )),
-    //     }
-    // }
-
     /// May return less libraries when requested
     /// Check it on user side if you need it
     /// If no libraries found, returns None
@@ -189,28 +144,9 @@ pub trait TLClientTrait: Send + Sync {
         }
         Ok(Some(libs_dict))
     }
-    //
-    // async fn smc_get_libraries_ext(
-    //     &self,
-    //     list: &[SmcLibraryQueryExt],
-    // ) -> Result<SmcLibraryResultExt, TonClientError> {
-    //     let func = TonFunction::SmcGetLibrariesExt {
-    //         list: list.to_vec(),
-    //     };
-    //     let result = self.invoke(&func).await?;
-    //     match result {
-    //         TonResult::SmcLibraryResultExt(r) => Ok(r),
-    //         r => Err(TonClientError::unexpected_ton_result(
-    //             TonResultDiscriminants::SmcLibraryResultExt,
-    //             r,
-    //         )),
-    //     }
-    // }
-    //
 
-    //
     async fn get_block_shards(&self, block_id: BlockIdExt) -> Result<TLBlocksShards, TonlibError> {
-        let req = TLRequest::BlocksGetShards { id: block_id.clone() };
+        let req = TLRequest::BlocksGetShards { id: block_id };
         unwrap_tl_response!(self.exec(&req).await?, TLBlocksShards)
     }
 
@@ -237,42 +173,7 @@ pub trait TLClientTrait: Send + Sync {
         };
         unwrap_tl_response!(self.exec(&req).await?, TLBlocksTxs)
     }
-    //
-    // async fn get_block_transactions_ext(
-    //     &self,
-    //     block_id: &BlockIdExt,
-    //     mode: u32,
-    //     count: u32,
-    //     after: &BlocksAccountTransactionId,
-    // ) -> Result<BlocksTransactionsExt, TonClientError> {
-    //     let func = TonFunction::BlocksGetTransactionsExt {
-    //         id: block_id.clone(),
-    //         mode,
-    //         count,
-    //         after: after.clone(),
-    //     };
-    //     let result = self.invoke(&func).await?;
-    //     match result {
-    //         TonResult::BlocksTransactionsExt(result) => Ok(result),
-    //         r => Err(TonClientError::unexpected_ton_result(
-    //             TonResultDiscriminants::BlocksTransactionsExt,
-    //             r,
-    //         )),
-    //     }
-    // }
-    //
-    // async fn lite_server_get_info(&self) -> Result<LiteServerInfo, TonClientError> {
-    //     let func = TonFunction::LiteServerGetInfo {};
-    //     let result = self.invoke(&func).await?;
-    //     match result {
-    //         TonResult::LiteServerInfo(result) => Ok(result),
-    //         r => Err(TonClientError::unexpected_ton_result(
-    //             TonResultDiscriminants::LiteServerInfo,
-    //             r,
-    //         )),
-    //     }
-    // }
-    //
+
     async fn get_block_header(&self, block_id: BlockIdExt) -> Result<TLBlocksHeader, TonlibError> {
         let req = TLRequest::GetBlockHeader { id: block_id };
         unwrap_tl_response!(self.exec(&req).await?, TLBlocksHeader)

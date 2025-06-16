@@ -1,5 +1,5 @@
 use crate::cell::ton_hash::TonHash;
-use crate::clients::block_stream::BlockStream;
+use crate::contracts::contract_client::block_stream::BlockStream;
 use crate::clients::client_types::TxId;
 use crate::clients::tl_client::tl::client::TLClientTrait;
 use crate::clients::tl_client::TLClient;
