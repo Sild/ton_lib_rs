@@ -6,7 +6,7 @@ use crate::clients::lite_client::config::{LiteClientConfig, LiteReqParams};
 use crate::errors::TonlibError;
 use crate::types::tlb::block_tlb::account::MaybeAccount;
 use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
-use crate::types::tlb::primitives::libs_dict::LibsDict;
+use crate::types::tlb::libs_dict::LibsDict;
 use crate::types::tlb::TLB;
 use crate::types::ton_address::TonAddress;
 use crate::{

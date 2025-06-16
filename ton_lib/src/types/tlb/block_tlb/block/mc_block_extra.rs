@@ -6,7 +6,7 @@ use crate::errors::TonlibError;
 use crate::types::tlb::adapters::bin_tree::BinTree;
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
-use crate::types::tlb::adapters::DictRef;
+use crate::types::tlb::adapters::tlb_hash_map_e::TLBHashMapE;
 use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
 use crate::types::tlb::block_tlb::block::shard_descr::ShardDescr;
 use crate::types::tlb::block_tlb::block::shard_ident::{ShardIdent, ShardPfx};
@@ -55,7 +55,7 @@ impl TLB for MCBlockExtra {
     const PREFIX: TLBPrefix = TLBPrefix::new(0xcca5, 16);
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
         let key_block = TLB::read(parser)?;
-        let shards_dict = DictRef::<DictKeyAdapterInto, DictValAdapterTLB, u32, TonCellRef>::new(32);
+        let shards_dict = TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLB, u32, TonCellRef>::new(32);
         let mut shard_hashes = HashMap::new();
         for (wc_id, cell_ref) in shards_dict.read(parser)? {
             let cur_hashes = BinTree::<DictValAdapterTLB, ShardDescr>::new().read(&mut cell_ref.parser())?;
@@ -87,7 +87,7 @@ impl TLB for MCBlockExtra {
             BinTree::<DictValAdapterTLB, _>::new().write(&mut val_builder, shards)?;
             shards_dict.insert(*wc_id as u32, val_builder.build_ref()?);
         }
-        DictRef::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).write(builder, &shards_dict)?;
+        TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).write(builder, &shards_dict)?;
         self.shard_fees.write(builder)?;
         self.shard_fees_crated.write(builder)?;
         self.ref_data.write(builder)?;

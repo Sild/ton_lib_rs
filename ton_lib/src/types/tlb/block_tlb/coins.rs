@@ -1,7 +1,7 @@
 use crate::errors::TonlibError;
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
-use crate::types::tlb::adapters::DictRef;
+use crate::types::tlb::adapters::tlb_hash_map_e::TLBHashMapE;
 use crate::types::tlb::block_tlb::var_len::VarLenBytes;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
@@ -18,7 +18,7 @@ pub struct Coins(VarLenBytes<u128, 4>);
 #[derive(Default, Clone, Debug, PartialEq, TLBDerive)]
 pub struct CurrencyCollection {
     pub grams: Coins,
-    #[tlb_derive(adapter = "DictRef::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32)")]
+    #[tlb_derive(adapter = "TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32)")]
     pub other: HashMap<u32, VarLenBytes<BigUint, 5>>,
 }
 

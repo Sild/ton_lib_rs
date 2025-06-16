@@ -9,7 +9,7 @@ use crate::types::tlb::TLB;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
-// for now it's used only only with shard_pfx in keys
+// for now it's used only only with ShardPfx in keys
 pub struct BinTree<VA: DictValAdapter<T>, T: TLB>(PhantomData<(VA, T)>);
 
 impl<VA: DictValAdapter<T>, T: TLB> Default for BinTree<VA, T> {

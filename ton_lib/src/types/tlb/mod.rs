@@ -11,6 +11,7 @@ use base64::Engine;
 
 pub mod adapters;
 pub mod block_tlb;
+pub mod libs_dict;
 pub mod primitives;
 pub mod tep_0064;
 pub mod tep_0074;

@@ -1,7 +1,7 @@
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterAddress;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
+use crate::types::tlb::adapters::tlb_hash_map::TLBHashMap;
 use crate::types::tlb::adapters::ConstLen;
-use crate::types::tlb::adapters::Dict;
 use crate::types::tlb::block_tlb::coins::Coins;
 use crate::types::tlb::block_tlb::msg_address::MsgAddressInt;
 use std::collections::HashMap;
@@ -9,7 +9,7 @@ use ton_lib_macros::TLBDerive;
 
 #[derive(Clone, Debug, TLBDerive)]
 pub struct MintlessAirdropDict {
-    #[tlb_derive(adapter = "Dict::<DictKeyAdapterAddress, DictValAdapterTLB, _, _>::new(267)")]
+    #[tlb_derive(adapter = "TLBHashMap::<DictKeyAdapterAddress, DictValAdapterTLB, _, _>::new(267)")]
     pub data: HashMap<MsgAddressInt, MintlessAirdropData>,
 }
 

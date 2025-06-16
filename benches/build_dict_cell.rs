@@ -5,7 +5,7 @@ use std::sync::LazyLock;
 use ton_lib::cell::ton_cell::TonCell;
 use ton_lib::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
 use ton_lib::types::tlb::adapters::dict_val_adapters::DictValAdapterNum;
-use ton_lib::types::tlb::adapters::Dict;
+use ton_lib::types::tlb::adapters::tlb_hash_map::TLBHashMap;
 use tonlib_core::cell::dict::predefined_writers::val_writer_unsigned_min_size;
 use tonlib_core::cell::CellBuilder as TonlibCellBuilder;
 
@@ -25,7 +25,9 @@ fn build_dict_tonlib() {
         let mut builder = TonCell::builder();
         let data_clone = DICT_DATA.clone(); // must do it to compare with tonlib_core
                                             // MyDict{data:data_clone}
-        Dict::<DictKeyAdapterInto, DictValAdapterNum<2>, _, _>::new(256).write(&mut builder, &data_clone).unwrap();
+        TLBHashMap::<DictKeyAdapterInto, DictValAdapterNum<2>, _, _>::new(256)
+            .write(&mut builder, &data_clone)
+            .unwrap();
         let cell = builder.build().unwrap();
         black_box(cell);
     }

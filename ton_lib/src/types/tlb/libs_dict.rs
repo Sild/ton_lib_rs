@@ -5,14 +5,12 @@ use crate::cell::ton_hash::TonHash;
 use crate::errors::TonlibError;
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterTonHash;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
-use crate::types::tlb::adapters::Dict;
+use crate::types::tlb::adapters::tlb_hash_map::TLBHashMap;
 use crate::types::tlb::TLB;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
-/// Contains dict itself, not 'present' marker in root cell
-/// Add TLBDict adapter to use in in TLB structs
-/// Consider using `Option<TonCellRef>` instead, if libraries itself are not important
+/// Contains dict (TLBHashMap), no 'present' marker in root cell
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct LibsDict(HashMap<TonHash, TonCellRef>);
 
@@ -28,7 +26,7 @@ impl LibsDict {
 
 impl TLB for LibsDict {
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
-        let data = Dict::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256).read(parser)?;
+        let data = TLBHashMap::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256).read(parser)?;
         Ok(LibsDict(data))
     }
 
@@ -36,7 +34,7 @@ impl TLB for LibsDict {
         if self.is_empty() {
             return Err(TonlibError::TLBDictEmpty);
         }
-        Dict::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256).write(builder, &self.0)?;
+        TLBHashMap::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256).write(builder, &self.0)?;
         Ok(())
     }
 }

@@ -36,12 +36,14 @@ pub(crate) fn tlb_derive_struct(
                     format!("ConstLen::<{}>::new({})", field.ty.to_token_stream(), field_attrs.bits_len.unwrap());
                 field_attrs.adapter = Some(adapter_str);
             }
-            if field_attrs.adapter.is_some() && field_attrs.adapter.as_ref().unwrap().starts_with("TLBRef") {
+
+            // well-known aliases
+            if field_attrs.adapter.is_some() && field_attrs.adapter.as_ref().unwrap() == "TLBRef" {
                 field_attrs.adapter = Some(format!("TLBRef::<{}>::new()", field.ty.to_token_stream()));
             }
 
-            if field_attrs.adapter.is_some() && field_attrs.adapter.as_ref().unwrap().starts_with("TLBOptRef") {
-                field_attrs.adapter = Some(format!("TLBOptRef::<{}>::new()", field.ty.to_token_stream()));
+            if field_attrs.adapter.is_some() && field_attrs.adapter.as_ref().unwrap() == "TLBRefOpt" {
+                field_attrs.adapter = Some(format!("TLBRefOpt::<{}>::new()", field.ty.to_token_stream()));
             }
 
             FieldInfo {

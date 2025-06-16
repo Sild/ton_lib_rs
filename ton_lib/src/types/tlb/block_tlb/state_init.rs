@@ -2,8 +2,8 @@ use crate::cell::ton_cell::TonCellRef;
 use crate::cell::ton_hash::TonHash;
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterTonHash;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
+use crate::types::tlb::adapters::tlb_hash_map_e::TLBHashMapE;
 use crate::types::tlb::adapters::ConstLen;
-use crate::types::tlb::adapters::DictRef;
 use std::collections::HashMap;
 use ton_lib_macros::TLBDerive;
 
@@ -15,7 +15,7 @@ pub struct StateInit {
     pub tick_tock: Option<TickTock>,
     pub code: Option<TonCellRef>,
     pub data: Option<TonCellRef>,
-    #[tlb_derive(adapter = "DictRef::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]
+    #[tlb_derive(adapter = "TLBHashMapE::<DictKeyAdapterTonHash, DictValAdapterTLB, _, _>::new(256)")]
     pub library: HashMap<TonHash, SimpleLib>,
 }
 

@@ -5,43 +5,31 @@ use crate::types::tlb::TLB;
 use std::marker::PhantomData;
 
 /// TLBRef - allows to save object in a reference cell ( ^X).
-///
-/// use `#[tlb_derive(adapter="TLBRef")]` to apply it automatically in TLBDerive macro
+/// use `#[tlb_derive(adapter="TLBRef")]` to apply it using TLBDerive macro
 #[derive(Debug, Clone, PartialEq)]
 pub struct TLBRef<T: TLB>(PhantomData<T>);
 
 /// TLBOptRef - allows to save optional object ( Maybe(^X) ) in a reference cell.
-///
-/// use `#[tlb_derive(adapter="TLBOptRef")]` to apply it automatically in TLBDerive macro
+/// use `#[tlb_derive(adapter="TLBRefOpt")]` to apply it using TLBDerive macro
 #[derive(Debug, Clone, PartialEq)]
-pub struct TLBOptRef<T: TLB>(PhantomData<T>);
-
-impl<T: TLB> Default for TLBRef<T> {
-    fn default() -> Self { Self::new() }
-}
+pub struct TLBRefOpt<T: TLB>(PhantomData<T>);
 
 impl<T: TLB> TLBRef<T> {
     pub fn new() -> Self { TLBRef(PhantomData) }
-
     pub fn read(&self, parser: &mut CellParser) -> Result<T, TonlibError> { T::from_cell(parser.read_next_ref()?) }
-
     pub fn write(&self, builder: &mut CellBuilder, val: &T) -> Result<(), TonlibError> {
         builder.write_ref(val.to_cell_ref()?)
     }
 }
 
-impl<T: TLB> Default for TLBOptRef<Option<T>> {
-    fn default() -> Self { Self::new() }
-}
-
-impl<T: TLB> TLBOptRef<Option<T>> {
-    pub fn new() -> Self { TLBOptRef(PhantomData) }
+impl<T: TLB> TLBRefOpt<Option<T>> {
+    pub fn new() -> Self { TLBRefOpt(PhantomData) }
 
     pub fn read(&self, parser: &mut CellParser) -> Result<Option<T>, TonlibError> {
-        if parser.read_bit()? {
-            return Ok(Some(T::from_cell(parser.read_next_ref()?)?));
+        match parser.read_bit()? {
+            true => Ok(Some(T::from_cell(parser.read_next_ref()?)?)),
+            false => Ok(None),
         }
-        Ok(None)
     }
 
     pub fn write(&self, builder: &mut CellBuilder, val: &Option<T>) -> Result<(), TonlibError> {
@@ -51,6 +39,13 @@ impl<T: TLB> TLBOptRef<Option<T>> {
         }
         Ok(())
     }
+}
+
+impl<T: TLB> Default for TLBRef<T> {
+    fn default() -> Self { Self::new() }
+}
+impl<T: TLB> Default for TLBRefOpt<Option<T>> {
+    fn default() -> Self { Self::new() }
 }
 
 #[cfg(test)]

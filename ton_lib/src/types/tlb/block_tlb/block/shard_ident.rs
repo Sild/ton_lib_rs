@@ -7,7 +7,7 @@ use crate::types::tlb::block_tlb::msg_address::MsgAddressInt;
 use crate::types::tlb::{TLBPrefix, TLB};
 use std::fmt::{Debug, Display, Formatter};
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Eq, Hash, PartialEq, Default)]
 pub struct ShardPfx {
     pub value: u64,
     pub bits_len: u32,
@@ -27,9 +27,6 @@ impl ShardPfx {
     }
 }
 
-impl Default for ShardPfx {
-    fn default() -> Self { Self { value: 0, bits_len: 0 } }
-}
 impl Debug for ShardPfx {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "ShardPfx(value: 0x{:016X}, bits_len: {})", self.value, self.bits_len)
@@ -62,7 +59,7 @@ impl ShardIdent {
             return true;
         }
         let pfx_len_bits = self.prefix_len();
-        bits_equal(&self.shard.to_be_bytes(), &addr.address_hash(), pfx_len_bits as usize)
+        bits_equal(&self.shard.to_be_bytes(), addr.address_hash(), pfx_len_bits as usize)
     }
 }
 
@@ -105,7 +102,7 @@ impl Debug for ShardIdent {
 
 impl Display for ShardIdent {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", format!("ShardIdent(wc: {}, shard: 0x{:016X})", self.wc, self.shard))
+        write!(f, "ShardIdent(wc: {}, shard: 0x{:016X})", self.wc, self.shard)
     }
 }
 

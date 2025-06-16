@@ -4,10 +4,8 @@ use crate::cell::ton_cell_num::TonCellNum;
 use crate::errors::TonlibError;
 use std::marker::PhantomData;
 
-/// Adaptor to write data with fixed length into a cell.
-///
-/// Usage: `#[tlb_derive(adapter="ConstLen::<{TYPE}>::new({BITS_LEN})")]`
-/// OR:    `#[tlb_derive(bits_len={BITS_LEN})]`
+/// Adapter to write data with fixed length into a cell.
+/// use `#[tlb_derive(bits_len={BITS_LEN})]` to apply it using TLBDerive macro
 pub struct ConstLen<T> {
     bits_len: usize,
     _phantom: PhantomData<T>,

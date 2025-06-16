@@ -8,10 +8,10 @@ use crate::cell::ton_hash::TonHash;
 use crate::errors::TonlibError;
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLBRef;
+use crate::types::tlb::adapters::tlb_hash_map_e::TLBHashMapE;
 use crate::types::tlb::adapters::ConstLen;
-use crate::types::tlb::adapters::DictRef;
-use crate::types::tlb::adapters::TLBOptRef;
 use crate::types::tlb::adapters::TLBRef;
+use crate::types::tlb::adapters::TLBRefOpt;
 use crate::types::tlb::block_tlb::account::AccountStatus;
 use crate::types::tlb::block_tlb::coins::CurrencyCollection;
 use crate::types::tlb::block_tlb::hash_update::HashUpdate;
@@ -51,8 +51,8 @@ pub struct TxMsgs {
 
 impl TLB for TxMsgs {
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
-        let in_msg = TLBOptRef::<_>::new().read(parser)?;
-        let mut out_msgs_map = DictRef::<DictKeyAdapterInto, DictValAdapterTLBRef, u32, _>::new(15).read(parser)?;
+        let in_msg = TLBRefOpt::<_>::new().read(parser)?;
+        let mut out_msgs_map = TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLBRef, u32, _>::new(15).read(parser)?;
         let mut out_msgs = Vec::with_capacity(out_msgs_map.len());
         // it's important to keep the order
         for msg_index in 0..out_msgs_map.len() as u32 {
@@ -66,10 +66,10 @@ impl TLB for TxMsgs {
     }
 
     fn write_definition(&self, builder: &mut CellBuilder) -> Result<(), TonlibError> {
-        TLBOptRef::<_>::new().write(builder, &self.in_msg)?;
+        TLBRefOpt::<_>::new().write(builder, &self.in_msg)?;
         let out_msgs_map: HashMap<_, _> =
             self.out_msgs.iter().enumerate().map(|(i, msg)| (i as u32, msg.clone())).collect();
-        DictRef::<DictKeyAdapterInto, DictValAdapterTLBRef, u32, _>::new(15).write(builder, &out_msgs_map)?;
+        TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLBRef, u32, _>::new(15).write(builder, &out_msgs_map)?;
         Ok(())
     }
 }

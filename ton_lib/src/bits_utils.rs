@@ -1,6 +1,6 @@
 // return false if left or right is too short for bits_len
 pub fn bits_equal(left: &[u8], right: &[u8], bits_len: usize) -> bool {
-    let bytes_len = (bits_len + 7) / 8;
+    let bytes_len = bits_len.div_ceil(8);
     if left.len() < bytes_len || right.len() < bytes_len {
         return false;
     }

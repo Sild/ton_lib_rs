@@ -1,6 +1,6 @@
 use crate::cell::ton_cell::TonCellRef;
 use crate::cell::ton_hash::TonHash;
-use crate::types::tlb::adapters::TLBOptRef;
+use crate::types::tlb::adapters::TLBRefOpt;
 use crate::types::tlb::block_tlb::block::mc_block_extra::MCBlockExtra;
 use ton_lib_macros::TLBDerive;
 
@@ -13,6 +13,6 @@ pub struct BlockExtra {
     pub account_blocks: TonCellRef, // TODO
     pub rand_seed: TonHash,
     pub created_by: TonHash,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub mc_block_extra: Option<MCBlockExtra>,
 }

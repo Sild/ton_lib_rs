@@ -119,7 +119,7 @@ mod tests {
     use crate::errors::TonlibError;
     use crate::sys_utils::sys_tonlib_set_verbosity_level;
     use crate::types::tlb::block_tlb::tvm::tvm_stack::TVMStack;
-    use crate::types::tlb::primitives::libs_dict::LibsDict;
+    use crate::types::tlb::libs_dict::LibsDict;
     use crate::types::tlb::tep_0074::jetton_transfer_msg::JettonTransferMsg;
     use crate::types::tlb::TLB;
     use crate::types::ton_address::TonAddress;

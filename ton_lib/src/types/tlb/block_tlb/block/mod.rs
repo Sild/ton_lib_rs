@@ -3,8 +3,8 @@ pub mod block_id_ext;
 pub mod block_info;
 pub mod block_prev_info;
 pub mod mc_block_extra;
-mod shard_accounts_blocks;
-mod shard_descr;
+pub mod shard_accounts_blocks;
+pub mod shard_descr;
 pub mod shard_ident;
 
 use crate::cell::ton_cell::TonCellRef;

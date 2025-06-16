@@ -3,8 +3,8 @@ use crate::types::tlb::block_tlb::tx::tr_phase::{
     TrActionPhase, TrBouncePhase, TrComputePhase, TrComputePhaseVM, TrCreditPhase, TrStoragePhase,
 };
 use crate::types::tlb::block_tlb::tx::ConstLen;
-use crate::types::tlb::block_tlb::tx::TLBOptRef;
 use crate::types::tlb::block_tlb::tx::TLBRef;
+use crate::types::tlb::block_tlb::tx::TLBRefOpt;
 use crate::types::tlb::block_tlb::tx::Tx;
 use std::ops::Deref;
 use ton_lib_macros::TLBDerive;
@@ -28,7 +28,7 @@ pub struct TxDescrOrd {
     pub storage_phase: Option<TrStoragePhase>,
     pub credit_phase: Option<TrCreditPhase>,
     pub compute_phase: TrComputePhase,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub action: Option<TrActionPhase>,
     pub aborted: bool,
     pub bounce: Option<TrBouncePhase>,
@@ -47,7 +47,7 @@ pub struct TxDescrTickTock {
     pub is_tock: bool,
     pub storage_phase: TrStoragePhase,
     pub compute_phase: TrComputePhase,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub action: Option<TrActionPhase>,
     pub aborted: bool,
     pub destroyed: bool,
@@ -59,7 +59,7 @@ pub struct TxDescrSplitPrepare {
     pub split_info: SplitMergeInfo,
     pub storage_phase: Option<TrStoragePhase>,
     pub compute_phase: TrComputePhase,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub action: Option<TrActionPhase>,
     pub aborted: bool,
     pub destroyed: bool,
@@ -88,12 +88,12 @@ pub struct TxDescrMergeInstall {
     pub split_info: SplitMergeInfo,
     #[tlb_derive(adapter = "TLBRef")]
     pub prepare_tx: Box<Tx>,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub storage_phase: Option<TrStoragePhase>,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub credit_phase: Option<TrCreditPhase>,
     pub compute_phase: TrComputePhase,
-    #[tlb_derive(adapter = "TLBOptRef")]
+    #[tlb_derive(adapter = "TLBRefOpt")]
     pub action: Option<TrActionPhase>,
     pub aborted: bool,
     pub destroyed: bool,

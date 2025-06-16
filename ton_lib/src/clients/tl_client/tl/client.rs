@@ -10,7 +10,7 @@ use crate::clients::tl_client::tl::types::{
 use crate::clients::tl_client::RetryStrategy;
 use crate::errors::TonlibError;
 use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
-use crate::types::tlb::primitives::libs_dict::LibsDict;
+use crate::types::tlb::libs_dict::LibsDict;
 use crate::types::tlb::TLB;
 use crate::types::ton_address::TonAddress;
 use crate::{

@@ -5,7 +5,7 @@ use crate::cell::ton_hash::TonHash;
 use crate::errors::TonlibError;
 use crate::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
 use crate::types::tlb::adapters::dict_val_adapters::DictValAdapterTLB;
-use crate::types::tlb::adapters::Dict;
+use crate::types::tlb::adapters::tlb_hash_map::TLBHashMap;
 use crate::types::tlb::block_tlb::config::config_param_18::ConfigParam18;
 use crate::types::tlb::block_tlb::config::config_param_8::GlobalVersion;
 use crate::types::tlb::TLB;
@@ -66,7 +66,8 @@ impl TLB for ConfigParams {
     fn read_definition(parser: &mut CellParser) -> Result<Self, TonlibError> {
         let config_addr = TLB::read(parser)?;
         let config_ref = parser.read_next_ref()?;
-        let config = Dict::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).read(&mut config_ref.parser())?;
+        let config =
+            TLBHashMap::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).read(&mut config_ref.parser())?;
         Ok(Self {
             config_addr,
             config,
@@ -77,7 +78,7 @@ impl TLB for ConfigParams {
     fn write_definition(&self, dst: &mut CellBuilder) -> Result<(), TonlibError> {
         self.config_addr.write(dst)?;
         let mut config_cell = TonCell::builder();
-        Dict::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).write(&mut config_cell, &self.config)?;
+        TLBHashMap::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).write(&mut config_cell, &self.config)?;
         dst.write_ref(config_cell.build()?.into_ref())?;
         Ok(())
     }
