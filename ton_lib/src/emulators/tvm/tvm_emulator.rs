@@ -113,7 +113,7 @@ unsafe impl Sync for TVMEmulator {}
 #[cfg(test)]
 mod tests {
     use crate::cell::ton_cell::{TonCell, TonCellRef};
-    use crate::emulators::emul_bc_config::EmulatorBCConfig;
+    use crate::emulators::emul_bc_config::EmulBCConfig;
     use crate::emulators::tvm::tvm_c7::TVMEmulatorC7;
     use crate::emulators::tvm::tvm_emulator::TVMEmulator;
     use crate::errors::TonlibError;
@@ -129,8 +129,8 @@ mod tests {
     use std::sync::LazyLock;
     use tokio_test::{assert_err, assert_ok};
 
-    static BC_CONFIG: LazyLock<EmulatorBCConfig> = LazyLock::new(|| {
-        EmulatorBCConfig::from_boc_hex(include_str!("../../../../resources/tests/bc_config_key_block_42123611.hex"))
+    static BC_CONFIG: LazyLock<EmulBCConfig> = LazyLock::new(|| {
+        EmulBCConfig::from_boc_hex(include_str!("../../../../resources/tests/bc_config_key_block_42123611.hex"))
             .unwrap()
     });
 

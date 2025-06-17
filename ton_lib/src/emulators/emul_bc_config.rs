@@ -6,19 +6,19 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
-pub struct EmulatorBCConfig(Arc<CString>);
+pub struct EmulBCConfig(Arc<CString>);
 
-impl Deref for EmulatorBCConfig {
+impl Deref for EmulBCConfig {
     type Target = CString;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
 
-impl From<Arc<CString>> for EmulatorBCConfig {
+impl From<Arc<CString>> for EmulBCConfig {
     fn from(config: Arc<CString>) -> Self { Self(config) }
 }
 
-impl EmulatorBCConfig {
+impl EmulBCConfig {
     pub fn from_boc(config_boc: &[u8]) -> Result<Self, TonlibError> {
         Self::from_boc_base64(&STANDARD.encode(config_boc))
     }

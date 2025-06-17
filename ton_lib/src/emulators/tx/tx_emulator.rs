@@ -1,6 +1,6 @@
 use crate::bc_constants::ZERO_CONFIG_BOC_B64;
 use crate::cell::ton_hash::TonHash;
-use crate::emulators::emul_bc_config::EmulatorBCConfig;
+use crate::emulators::emul_bc_config::EmulBCConfig;
 use crate::emulators::emul_utils::{convert_emulator_response, make_b64_c_str, set_param_failed};
 use crate::emulators::tx::tx_emul_args::{TXEmulArgs, TXEmulOrdArgs, TXEmulTickTockArgs};
 use crate::emulators::tx::tx_emul_response::{TXEmulationResponse, TXEmulationSuccess};
@@ -84,7 +84,7 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn actualize_config(&mut self, config: &EmulatorBCConfig) -> Result<(), TonlibError> {
+    fn actualize_config(&mut self, config: &EmulBCConfig) -> Result<(), TonlibError> {
         let config_hash = calc_hash(config.as_bytes());
         if self.cur_bc_config_hash == config_hash {
             return Ok(());
@@ -206,8 +206,8 @@ mod tests {
     use std::sync::LazyLock;
     use tokio_test::{assert_err, assert_ok};
 
-    static BC_CONFIG: LazyLock<EmulatorBCConfig> = LazyLock::new(|| {
-        EmulatorBCConfig::from_boc_hex(include_str!("../../../../resources/tests/bc_config_key_block_42123611.hex"))
+    static BC_CONFIG: LazyLock<EmulBCConfig> = LazyLock::new(|| {
+        EmulBCConfig::from_boc_hex(include_str!("../../../../resources/tests/bc_config_key_block_42123611.hex"))
             .unwrap()
     });
 

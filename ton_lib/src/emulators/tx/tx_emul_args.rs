@@ -1,5 +1,5 @@
 use crate::cell::ton_hash::TonHash;
-use crate::emulators::emul_bc_config::EmulatorBCConfig;
+use crate::emulators::emul_bc_config::EmulBCConfig;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone)]
@@ -16,7 +16,7 @@ pub struct TXEmulTickTockArgs {
 #[derive(Debug, Clone)]
 pub struct TXEmulArgs {
     pub shard_account_boc: Vec<u8>,
-    pub bc_config: EmulatorBCConfig,
+    pub bc_config: EmulBCConfig,
     pub rand_seed: TonHash,
     pub utime: u32,
     pub lt: u64,

@@ -5,7 +5,7 @@ use crate::contracts::contract_client::contract_client_cache::{
 };
 use crate::contracts::contract_client::data_provider::DataProvider;
 use crate::contracts::contract_client::types::ContractState;
-use crate::emulators::emul_bc_config::EmulatorBCConfig;
+use crate::emulators::emul_bc_config::EmulBCConfig;
 use crate::emulators::tvm::tvm_method_id::TVMGetMethodID;
 use crate::emulators::tvm::tvm_response::TVMRunGetMethodSuccess;
 use crate::errors::TonlibError;
@@ -46,8 +46,8 @@ impl ContractClient {
         self.inner.cache.get_state(address, tx_id).await
     }
 
-    pub async fn get_config_boc(&self, mc_seqno: Option<u32>) -> Result<EmulatorBCConfig, TonlibError> {
-        EmulatorBCConfig::from_boc(&self.inner.data_provider.get_config_boc(mc_seqno).await?)
+    pub async fn get_config_boc(&self, mc_seqno: Option<u32>) -> Result<EmulBCConfig, TonlibError> {
+        EmulBCConfig::from_boc(&self.inner.data_provider.get_config_boc(mc_seqno).await?)
     }
 
     pub async fn get_libs_boc(&self, lib_ids: &[TonHash]) -> Result<Option<Vec<u8>>, TonlibError> {
