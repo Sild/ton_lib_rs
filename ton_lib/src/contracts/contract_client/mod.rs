@@ -14,11 +14,11 @@ use crate::types::tlb::TLB;
 use crate::types::ton_address::TonAddress;
 use std::sync::Arc;
 
+#[allow(unused)]
+pub mod block_stream;
 pub mod contract_client_cache;
 pub mod data_provider;
 pub mod types;
-#[allow(unused)]
-pub mod block_stream;
 
 pub struct ContractClient {
     inner: Arc<Inner>,
@@ -38,7 +38,7 @@ impl ContractClient {
         })
     }
 
-    pub async fn get_state(
+    pub async fn get_contract_state(
         &self,
         address: &TonAddress,
         tx_id: Option<&TxId>,

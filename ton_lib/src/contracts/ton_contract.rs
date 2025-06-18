@@ -39,7 +39,7 @@ pub trait TonContractTrait: Send + Sync + Sized {
 
     async fn get_state(&self) -> Result<Arc<ContractState>, TonlibError> {
         let ctx = self.ctx();
-        ctx.client.get_state(&ctx.address, ctx.tx_id.as_ref()).await
+        ctx.client.get_contract_state(&ctx.address, ctx.tx_id.as_ref()).await
     }
 
     async fn get_parsed_data<D: TLB>(&self) -> Result<D, TonlibError> {

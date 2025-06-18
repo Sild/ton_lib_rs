@@ -19,14 +19,13 @@ impl<VA: DictValAdapter<T>, T: TLB> Default for BinTree<VA, T> {
 impl<VA: DictValAdapter<T>, T: TLB> BinTree<VA, T> {
     pub fn new() -> Self { Self(PhantomData) }
 
-    pub fn read(&self, parser: &mut CellParser) -> Result<HashMap<ShardPfx, T>, TonlibError> {
+    pub fn read(parser: &mut CellParser) -> Result<HashMap<ShardPfx, T>, TonlibError> {
         let mut val = HashMap::new();
-        self.read_impl(parser, ShardPfx::default(), &mut val)?;
+        Self::read_impl(parser, ShardPfx::default(), &mut val)?;
         Ok(val)
     }
 
     fn read_impl(
-        &self,
         parser: &mut CellParser,
         cur_key: ShardPfx,
         cur_val: &mut HashMap<ShardPfx, T>,
@@ -47,25 +46,24 @@ impl<VA: DictValAdapter<T>, T: TLB> BinTree<VA, T> {
             value: cur_key.value,
             bits_len: new_bits_len,
         };
-        self.read_impl(&mut parser.read_next_ref()?.parser(), left_key, cur_val)?;
+        Self::read_impl(&mut parser.read_next_ref()?.parser(), left_key, cur_val)?;
 
         let right_key = ShardPfx {
             value: cur_key.value | (1 << (64 - new_bits_len)),
             bits_len: new_bits_len,
         };
-        self.read_impl(&mut parser.read_next_ref()?.parser(), right_key, cur_val)?;
+        Self::read_impl(&mut parser.read_next_ref()?.parser(), right_key, cur_val)?;
         Ok(())
     }
 
-    pub fn write(&self, builder: &mut CellBuilder, data: &HashMap<ShardPfx, T>) -> Result<(), TonlibError> {
+    pub fn write(builder: &mut CellBuilder, data: &HashMap<ShardPfx, T>) -> Result<(), TonlibError> {
         if data.is_empty() {
             return Err(TonlibError::TLBWrongData("BinTree can't be empty".to_string()));
         }
-        self.write_impl(builder, ShardPfx::default(), data)
+        Self::write_impl(builder, ShardPfx::default(), data)
     }
 
     fn write_impl(
-        &self,
         builder: &mut CellBuilder,
         cur_key: ShardPfx,
         data: &HashMap<ShardPfx, T>,
@@ -94,11 +92,11 @@ impl<VA: DictValAdapter<T>, T: TLB> BinTree<VA, T> {
         };
 
         let mut left_builder = TonCell::builder();
-        self.write_impl(&mut left_builder, left_key, data)?;
+        Self::write_impl(&mut left_builder, left_key, data)?;
         builder.write_ref(left_builder.build_ref()?)?;
 
         let mut right_builder = TonCell::builder();
-        self.write_impl(&mut right_builder, right_key, data)?;
+        Self::write_impl(&mut right_builder, right_key, data)?;
         builder.write_ref(right_builder.build_ref()?)?;
         Ok(())
     }
@@ -161,11 +159,11 @@ mod tests {
             ),
         ]);
         let mut builder = TonCell::builder();
-        BinTree::<DictValAdapterNum<32>, u32>::new().write(&mut builder, &data)?;
+        BinTree::<DictValAdapterNum<32>, u32>::write(&mut builder, &data)?;
         let cell = builder.build()?;
         println!("{:?}", cell);
         let mut parser = cell.parser();
-        let parsed_data = BinTree::<DictValAdapterNum<32>, u32>::new().read(&mut parser)?;
+        let parsed_data = BinTree::<DictValAdapterNum<32>, u32>::read(&mut parser)?;
         assert_eq!(data, parsed_data);
         Ok(())
     }

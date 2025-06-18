@@ -58,7 +58,7 @@ impl TLB for MCBlockExtra {
         let shards_dict = TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLB, u32, TonCellRef>::new(32);
         let mut shard_hashes = HashMap::new();
         for (wc_id, cell_ref) in shards_dict.read(parser)? {
-            let cur_hashes = BinTree::<DictValAdapterTLB, ShardDescr>::new().read(&mut cell_ref.parser())?;
+            let cur_hashes = BinTree::<DictValAdapterTLB, _>::read(&mut cell_ref.parser())?;
             shard_hashes.insert(wc_id as i32, cur_hashes);
         }
         let shard_fees = TLB::read(parser)?;
@@ -84,7 +84,7 @@ impl TLB for MCBlockExtra {
         let mut shards_dict = HashMap::<u32, TonCellRef>::new();
         for (wc_id, shards) in &self.shard_hashes {
             let mut val_builder = TonCell::builder();
-            BinTree::<DictValAdapterTLB, _>::new().write(&mut val_builder, shards)?;
+            BinTree::<DictValAdapterTLB, _>::write(&mut val_builder, shards)?;
             shards_dict.insert(*wc_id as u32, val_builder.build_ref()?);
         }
         TLBHashMapE::<DictKeyAdapterInto, DictValAdapterTLB, _, _>::new(32).write(builder, &shards_dict)?;

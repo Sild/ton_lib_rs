@@ -8,7 +8,7 @@ use rand::prelude::{IndexedRandom, StdRng};
 use rand::SeedableRng;
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
-use tokio::sync::{Semaphore};
+use tokio::sync::Semaphore;
 
 // /// Simple client with many connections
 #[derive(Clone)]
