@@ -4,9 +4,9 @@ use std::time::Duration;
 use ton_lib::clients::lite_client::client::LiteClient;
 use ton_lib::clients::lite_client::config::LiteClientConfig;
 use ton_lib::clients::net_config::TonNetConfig;
-use ton_lib::errors::TonlibError;
-use ton_lib::types::ton_address::TonAddress;
+use ton_lib::error::TLError;
 use ton_lib::unwrap_lite_response;
+use ton_lib_core::types::TonAddress;
 use ton_liteapi::tl::request::Request;
 use ton_liteapi::tl::response::Response;
 

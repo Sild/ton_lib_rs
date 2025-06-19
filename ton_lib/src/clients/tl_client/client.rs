@@ -2,7 +2,7 @@ use crate::clients::tl_client::connection::TLConnection;
 use crate::clients::tl_client::env::prepare_client_env;
 use crate::clients::tl_client::RetryStrategy;
 use crate::clients::tl_client::{config::TLClientConfig, tl::client::TLClientTrait};
-use crate::errors::TonlibError;
+use crate::error::TLError;
 use async_trait::async_trait;
 use rand::prelude::{IndexedRandom, StdRng};
 use rand::SeedableRng;
@@ -33,7 +33,7 @@ impl TLClientTrait for TLClient {
 }
 
 impl TLClient {
-    pub async fn new(mut config: TLClientConfig) -> Result<TLClient, TonlibError> {
+    pub async fn new(mut config: TLClientConfig) -> Result<TLClient, TLError> {
         prepare_client_env(&mut config).await?;
 
         let semaphore = Arc::new(Semaphore::new(config.max_parallel_requests));

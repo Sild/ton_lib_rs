@@ -28,7 +28,7 @@ pub(crate) fn tlb_derive_impl(input: proc_macro::TokenStream) -> TokenStream {
         Err(e) => return e.into_compile_error(),
     };
 
-    let found_crate = crate_name("ton_lib").expect("ton_lib crate not found");
+    let found_crate = crate_name("ton_lib_core").expect("ton_lib crate not found");
 
     let crate_path = match found_crate {
         FoundCrate::Itself => quote::quote! { crate },
@@ -50,16 +50,16 @@ pub(crate) fn tlb_derive_impl(input: proc_macro::TokenStream) -> TokenStream {
     let prefix_bits_len = header_attrs.bits_len.unwrap_or(0);
 
     quote::quote! {
-        impl #crate_path::types::tlb::TLB for #ident {
-            const PREFIX: #crate_path::types::tlb::TLBPrefix = #crate_path::types::tlb::TLBPrefix::new(#prefix_val, #prefix_bits_len);
+        impl #crate_path::traits::tlb::TLB for #ident {
+            const PREFIX: #crate_path::traits::tlb::TLBPrefix = #crate_path::traits::tlb::TLBPrefix::new(#prefix_val, #prefix_bits_len);
 
-            fn read_definition(parser: &mut #crate_path::cell::build_parse::parser::CellParser) -> Result<Self, #crate_path::errors::TonlibError> {
-                use #crate_path::types::tlb::TLB;
+            fn read_definition(parser: &mut #crate_path::cell::CellParser) -> Result<Self, #crate_path::error::TonlibError> {
+                use #crate_path::traits::tlb::TLB;
 
                 #read_def_tokens
             }
 
-            fn write_definition(&self, builder: &mut #crate_path::cell::build_parse::builder::CellBuilder) -> Result<(), #crate_path::errors::TonlibError> {
+            fn write_definition(&self, builder: &mut #crate_path::cell::CellBuilder) -> Result<(), #crate_path::error::TonlibError> {
                 #write_def_tokens
             }
         }

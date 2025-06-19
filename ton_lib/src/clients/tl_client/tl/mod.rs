@@ -9,4 +9,4 @@ pub(crate) mod tonlibjson_wrapper;
 pub mod response;
 pub(super) mod ser_de;
 pub mod types;
-mod unwrap_tl_response_macro;
+mod unwrap_tl_response;

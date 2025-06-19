@@ -4,7 +4,7 @@ use crate::emulators::tvm::tvm_method_id::TVMGetMethodID;
 use crate::emulators::tvm::tvm_response::{
     TVMRunGetMethodResponse, TVMRunGetMethodSuccess, TVMSendMsgResponse, TVMSendMsgSuccess,
 };
-use crate::errors::TonlibError;
+use crate::error::TLError;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use std::ffi::CString;
@@ -22,19 +22,19 @@ pub struct TVMEmulator {
 const DEFAULT_TVM_LOG_VERBOSITY: u32 = 1;
 
 impl TVMEmulator {
-    pub fn new(code_boc: &[u8], data_boc: &[u8], c7: &TVMEmulatorC7) -> Result<Self, TonlibError> {
+    pub fn new(code_boc: &[u8], data_boc: &[u8], c7: &TVMEmulatorC7) -> Result<Self, TLError> {
         let code = CString::new(STANDARD.encode(code_boc.as_ref()))?;
         let data = CString::new(STANDARD.encode(data_boc.as_ref()))?;
         let ptr = unsafe { tvm_emulator_create(code.as_ptr(), data.as_ptr(), DEFAULT_TVM_LOG_VERBOSITY) };
         if ptr.is_null() {
-            return Err(TonlibError::EmulatorCreationFailed);
+            return Err(TLError::EmulatorCreationFailed);
         }
         let mut emulator = TVMEmulator { ptr };
         emulator.set_c7(c7)?;
         Ok(emulator)
     }
 
-    pub fn set_c7(&mut self, c7: &TVMEmulatorC7) -> Result<(), TonlibError> {
+    pub fn set_c7(&mut self, c7: &TVMEmulatorC7) -> Result<(), TLError> {
         let address = CString::new(c7.address.to_hex().as_bytes())?;
         let seed = CString::new(c7.rand_seed.to_hex().as_bytes())?;
         let success = unsafe {
@@ -46,7 +46,7 @@ impl TVMEmulator {
         }
     }
 
-    pub fn set_debug_enabled(&mut self, enabled: bool) -> Result<(), TonlibError> {
+    pub fn set_debug_enabled(&mut self, enabled: bool) -> Result<(), TLError> {
         let success = unsafe { tvm_emulator_set_debug_enabled(self.ptr, enabled as i32) };
         match success {
             true => Ok(()),
@@ -54,7 +54,7 @@ impl TVMEmulator {
         }
     }
 
-    pub fn set_gas_limit(&mut self, limit: u64) -> Result<(), TonlibError> {
+    pub fn set_gas_limit(&mut self, limit: u64) -> Result<(), TLError> {
         let success = unsafe { tvm_emulator_set_gas_limit(self.ptr, limit) };
         match success {
             true => Ok(()),
@@ -62,7 +62,7 @@ impl TVMEmulator {
         }
     }
 
-    pub fn set_libs(&mut self, libs_boc: &[u8]) -> Result<(), TonlibError> {
+    pub fn set_libs(&mut self, libs_boc: &[u8]) -> Result<(), TLError> {
         let libs = CString::new(STANDARD.encode(libs_boc))?;
         let success = unsafe { tvm_emulator_set_libraries(self.ptr, libs.as_ptr()) };
         match success {
@@ -71,7 +71,7 @@ impl TVMEmulator {
         }
     }
 
-    pub fn run_get_method<T>(&mut self, method: T, stack_boc: &[u8]) -> Result<TVMRunGetMethodSuccess, TonlibError>
+    pub fn run_get_method<T>(&mut self, method: T, stack_boc: &[u8]) -> Result<TVMRunGetMethodSuccess, TLError>
     where
         T: Into<TVMGetMethodID>,
     {
@@ -84,7 +84,7 @@ impl TVMEmulator {
         TVMRunGetMethodResponse::from_json(json_str)?.into_success()
     }
 
-    pub fn send_int_msg(&mut self, msg_boc: &[u8], amount: u64) -> Result<TVMSendMsgSuccess, TonlibError> {
+    pub fn send_int_msg(&mut self, msg_boc: &[u8], amount: u64) -> Result<TVMSendMsgSuccess, TLError> {
         log::trace!("[TVMEmulator][send_int_msg]: msg_boc: {msg_boc:?}, amount: {amount}");
         let msg = CString::new(STANDARD.encode(msg_boc))?;
 
@@ -94,7 +94,7 @@ impl TVMEmulator {
         TVMSendMsgResponse::from_json(json_str)?.into_success()
     }
 
-    pub fn send_ext_msg(&mut self, msg_boc: &[u8]) -> Result<TVMSendMsgSuccess, TonlibError> {
+    pub fn send_ext_msg(&mut self, msg_boc: &[u8]) -> Result<TVMSendMsgSuccess, TLError> {
         log::trace!("[TVMEmulator][send_ext_msg]: msg_boc: {msg_boc:?}");
         let msg = make_b64_c_str(msg_boc)?;
         let response_ptr = unsafe { tvm_emulator_send_external_message(self.ptr, msg.as_ptr()) };
@@ -112,22 +112,22 @@ unsafe impl Sync for TVMEmulator {}
 
 #[cfg(test)]
 mod tests {
-    use crate::cell::ton_cell::{TonCell, TonCellRef};
+    use crate::block_tlb::TVMStack;
     use crate::emulators::emul_bc_config::EmulBCConfig;
     use crate::emulators::tvm::tvm_c7::TVMEmulatorC7;
     use crate::emulators::tvm::tvm_emulator::TVMEmulator;
-    use crate::errors::TonlibError;
+    use crate::error::TLError;
+    use crate::libs_dict::LibsDict;
     use crate::sys_utils::sys_tonlib_set_verbosity_level;
-    use crate::types::tlb::block_tlb::tvm::tvm_stack::TVMStack;
-    use crate::types::tlb::libs_dict::LibsDict;
-    use crate::types::tlb::tep_0074::jetton_transfer_msg::JettonTransferMsg;
-    use crate::types::tlb::TLB;
-    use crate::types::ton_address::TonAddress;
+    use crate::tep_0074::JettonTransferMsg;
     use num_bigint::BigInt;
     use std::ops::{Deref, Neg};
     use std::str::FromStr;
     use std::sync::LazyLock;
     use tokio_test::{assert_err, assert_ok};
+    use ton_lib_core::cell::{TonCell, TonCellRef};
+    use ton_lib_core::traits::tlb::TLB;
+    use ton_lib_core::types::TonAddress;
 
     static BC_CONFIG: LazyLock<EmulBCConfig> = LazyLock::new(|| {
         EmulBCConfig::from_boc_hex(include_str!("../../../../resources/tests/bc_config_key_block_42123611.hex"))
@@ -218,7 +218,7 @@ mod tests {
 
         // no libs - should fail
         let emulator_error = assert_err!(emulator.run_get_method("get_wallet_address", &stack.to_boc()?));
-        if let TonlibError::EmulatorEmulationError {
+        if let TLError::EmulatorEmulationError {
             vm_exit_code,
             response_raw,
         } = emulator_error

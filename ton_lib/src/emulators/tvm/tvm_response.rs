@@ -1,10 +1,10 @@
+use crate::block_tlb::TVMStack;
 use crate::emulators::emul_utils::require_field;
-use crate::errors::TonlibError;
-use crate::types::tlb::block_tlb::tvm::tvm_stack::TVMStack;
-use crate::types::tlb::TLB;
+use crate::error::TLError;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
+use ton_lib_core::traits::tlb::TLB;
 
 #[derive(Debug)]
 pub struct TVMRunGetMethodSuccess {
@@ -30,22 +30,22 @@ pub struct TVMRunGetMethodResponse {
 }
 
 impl TVMRunGetMethodResponse {
-    pub fn from_json(json: String) -> Result<Self, TonlibError> {
+    pub fn from_json(json: String) -> Result<Self, TLError> {
         let mut value: Self = serde_json::from_str(&json)?;
         value.raw_response = json;
         Ok(value)
     }
 
-    pub fn into_success(self) -> Result<TVMRunGetMethodSuccess, TonlibError> {
+    pub fn into_success(self) -> Result<TVMRunGetMethodSuccess, TLError> {
         if !self.success {
-            return Err(TonlibError::EmulatorEmulationError {
+            return Err(TLError::EmulatorEmulationError {
                 vm_exit_code: self.vm_exit_code,
                 response_raw: self.raw_response,
             });
         }
         let vm_exit_code = require_field(self.vm_exit_code, "vm_exit_code", &self.raw_response)?;
         if vm_exit_code != 0 && vm_exit_code != 1 {
-            return Err(TonlibError::EmulatorEmulationError {
+            return Err(TLError::EmulatorEmulationError {
                 vm_exit_code: self.vm_exit_code,
                 response_raw: self.raw_response,
             });
@@ -66,9 +66,9 @@ impl TVMRunGetMethodResponse {
 }
 
 impl TVMRunGetMethodSuccess {
-    pub fn stack_parsed(&self) -> Result<TVMStack, TonlibError> { TVMStack::from_boc_base64(&self.stack_boc_base64) }
+    pub fn stack_parsed(&self) -> Result<TVMStack, TLError> { Ok(TVMStack::from_boc_base64(&self.stack_boc_base64)?) }
 
-    pub fn stack_boc(&self) -> Result<Vec<u8>, TonlibError> {
+    pub fn stack_boc(&self) -> Result<Vec<u8>, TLError> {
         Ok(BASE64_STANDARD.decode(self.stack_boc_base64.as_bytes())?)
     }
 
@@ -110,15 +110,15 @@ pub struct TVMSendMsgResponse {
 }
 
 impl TVMSendMsgResponse {
-    pub fn from_json(json: String) -> Result<Self, TonlibError> {
+    pub fn from_json(json: String) -> Result<Self, TLError> {
         let mut value: Self = serde_json::from_str(&json)?;
         value.raw_response = json;
         Ok(value)
     }
 
-    pub fn into_success(self) -> Result<TVMSendMsgSuccess, TonlibError> {
+    pub fn into_success(self) -> Result<TVMSendMsgSuccess, TLError> {
         if !self.success {
-            return Err(TonlibError::EmulatorEmulationError {
+            return Err(TLError::EmulatorEmulationError {
                 vm_exit_code: self.vm_exit_code,
                 response_raw: self.raw_response,
             });

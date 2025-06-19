@@ -1,7 +1,7 @@
 use crate::tests::test_tl_client::make_tonlib_client;
 use std::collections::{HashMap, HashSet};
-use ton_lib::contracts::contract_client::block_stream::BlockStream;
-use ton_lib::contracts::contract_client::contract_client_cache::ContractClientCacheConfig;
+use ton_lib::contracts::client::block_stream::BlockStream;
+use ton_lib::contracts::client::contract_client_cache::ContractClientCacheConfig;
 
 #[tokio::test]
 async fn test_contract_client_tl_data_provider() -> anyhow::Result<()> {

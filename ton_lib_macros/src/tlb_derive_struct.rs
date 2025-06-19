@@ -30,20 +30,21 @@ pub(crate) fn tlb_derive_struct(
                 Ok(desc) => desc,
                 Err(_err) => panic!("Attribute does not exist at position {}", position),
             };
+
+            let ty_token_stream = field.ty.to_token_stream();
             // bits_len=XXX is alias for ConstLen adapter
-            if field_attrs.bits_len.is_some() {
-                let adapter_str =
-                    format!("ConstLen::<{}>::new({})", field.ty.to_token_stream(), field_attrs.bits_len.unwrap());
+            if let Some(bits_len) = &field_attrs.bits_len {
+                let adapter_str = format!("ConstLen::<{ty_token_stream}>::new({bits_len})");
                 field_attrs.adapter = Some(adapter_str);
             }
 
-            // well-known aliases
-            if field_attrs.adapter.is_some() && field_attrs.adapter.as_ref().unwrap() == "TLBRef" {
-                field_attrs.adapter = Some(format!("TLBRef::<{}>::new()", field.ty.to_token_stream()));
-            }
-
-            if field_attrs.adapter.is_some() && field_attrs.adapter.as_ref().unwrap() == "TLBRefOpt" {
-                field_attrs.adapter = Some(format!("TLBRefOpt::<{}>::new()", field.ty.to_token_stream()));
+            if let Some(adapter) = field_attrs.adapter {
+                // well-known aliases
+                match adapter.as_str() {
+                    "TLBRef" => field_attrs.adapter = Some(format!("TLBRef::<{ty_token_stream}>::new()")),
+                    "TLBRefOpt" => field_attrs.adapter = Some(format!("TLBRefOpt::<{ty_token_stream}>::new()")),
+                    _ => field_attrs.adapter = Some(adapter),
+                }
             }
 
             FieldInfo {

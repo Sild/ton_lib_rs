@@ -21,7 +21,7 @@ include = [
 
 [features]
 default = ["contracts", "tonlibjson", "emulator"]
-emulator = ["dep:tonlib-sys"] # add tvm/tx emulators
+emulator = ["dep:tonlib-sys"] # add tvm_types/tx emulators
 tonlibjson = ["dep:tonlib-sys"] # add tonlibjson client implementations
 contracts = ["dep:moka", "dep:async-recursion"]
 #serde_scylla = ["dep:scylla"] # add scylla ser-de for TonHash, TonAddress
@@ -29,7 +29,7 @@ contracts = ["dep:moka", "dep:async-recursion"]
 
 [dependencies]
 # Internal
-ton_lib_macros = { path = "../ton_lib_macros", version = "0" }
+ton_lib_core = { path = "../tonlib_core", version = "0.1.0" }
 
 # External
 tonlib-sys = { version = "2025.4.1", features = ["with_debug_info"], optional = true }
@@ -40,7 +40,9 @@ bitstream-io = "4.1"
 parking_lot = "0.12"
 thiserror = "2.0"
 log = "0.4"
-sha2 = {version = "0.10"}
+hmac = "0.12"
+pbkdf2 = { version = "0.12", features = ["simple"] }
+nacl = "0.5"
 crc = "3.2"
 hex = "0.4"
 base64 = "0.22"
@@ -63,10 +65,9 @@ futures-util = "0.3"
 libc = "0.2"
 
 
-hmac = "0.12"
-pbkdf2 = { version = "0.12", features = ["simple"] }
-nacl = "0.5"
+
 tokio-retry = "0.3"
+sha2 = "0.10.9"
 
 
 [dev-dependencies]

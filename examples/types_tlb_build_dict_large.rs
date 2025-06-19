@@ -1,11 +1,14 @@
 use num_bigint::BigUint;
 use std::collections::HashMap;
-use ton_lib::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
-use ton_lib::types::tlb::adapters::dict_val_adapters::DictValAdapterNum;
-use ton_lib::types::tlb::adapters::tlb_hash_map::TLBHashMap;
-use ton_lib::{ton_lib_macros::TLBDerive, types::tlb::TLB};
+use ton_lib::tlb_adapters::DictKeyAdapterInto;
+use ton_lib::tlb_adapters::DictValAdapterNum;
+use ton_lib::tlb_adapters::TLBHashMap;
+use ton_lib_core::traits::tlb::TLB;
+use ton_lib_core::TLBDerive;
+
 extern crate num_bigint;
 extern crate ton_lib;
+extern crate tonlib_core;
 
 // const ITEMS_COUNT: usize = 40000000;
 const ITEMS_COUNT: usize = 400000;

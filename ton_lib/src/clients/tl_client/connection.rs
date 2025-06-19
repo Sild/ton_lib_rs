@@ -8,21 +8,19 @@ use crate::clients::tl_client::config::{LiteNodeFilter, TLClientConfig};
 use crate::clients::tl_client::tl::client::TLClientTrait;
 use crate::clients::tl_client::tl::request::TLRequest;
 use crate::clients::tl_client::tl::response::TLResponse;
+use crate::clients::tl_client::tl::tonlibjson_wrapper::TonlibjsonWrapper;
 use crate::clients::tl_client::tl::types::{TLBlockId, TLOptions, TLOptionsInfo};
 use crate::clients::tl_client::RetryStrategy;
 use crate::clients::tl_client::{
     callback::{TLCallback, TLCallbacksStore},
     tl::request_context::TLRequestCtx,
 };
-use crate::errors::TonlibError;
+use crate::error::TLError;
 use crate::sys_utils::sys_tonlib_set_verbosity_level;
 use crate::unwrap_tl_response;
-use crate::{
-    bc_constants::{TON_MASTERCHAIN_ID, TON_SHARD_FULL},
-    clients::tl_client::tl::tonlibjson_wrapper::TonlibjsonWrapper,
-};
 use async_trait::async_trait;
 use tokio::sync::{oneshot, Mutex, Semaphore};
+use ton_lib_core::constants::{TON_MC_ID, TON_SHARD_FULL};
 
 static CONNECTION_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -53,22 +51,20 @@ impl TLClientTrait for TLConnection {
 }
 
 impl TLConnection {
-    pub async fn new(config: &TLClientConfig, semaphore: Arc<Semaphore>) -> Result<TLConnection, TonlibError> {
+    pub async fn new(config: &TLClientConfig, semaphore: Arc<Semaphore>) -> Result<TLConnection, TLError> {
         new_connection_checked(config, semaphore).await
     }
 
-    pub async fn exec_impl(&self, req: &TLRequest) -> Result<TLResponse, TonlibError> {
-        self.inner.exec_impl(req).await
-    }
+    pub async fn exec_impl(&self, req: &TLRequest) -> Result<TLResponse, TLError> { self.inner.exec_impl(req).await }
 
-    async fn init(&self, options: TLOptions) -> Result<TLOptionsInfo, TonlibError> {
+    async fn init(&self, options: TLOptions) -> Result<TLOptionsInfo, TLError> {
         let req = TLRequest::Init { options };
         unwrap_tl_response!(self.exec_impl(&req).await?, TLOptionsInfo)
     }
 }
 
 impl Inner {
-    pub async fn exec_impl(&self, req: &TLRequest) -> Result<TLResponse, TonlibError> {
+    pub async fn exec_impl(&self, req: &TLRequest) -> Result<TLResponse, TLError> {
         let _permit = self.semaphore.acquire().await;
         let req_id = self.next_request_id.fetch_add(1, Ordering::Relaxed);
         let tag = self.tonlibjson_wrapper.tag();
@@ -127,10 +123,7 @@ fn run_loop(tag: String, weak_inner: Weak<Inner>, callbacks: TLCallbacksStore) {
     callbacks.on_loop_exit(&tag);
 }
 
-async fn new_connection_checked(
-    config: &TLClientConfig,
-    semaphore: Arc<Semaphore>,
-) -> Result<TLConnection, TonlibError> {
+async fn new_connection_checked(config: &TLClientConfig, semaphore: Arc<Semaphore>) -> Result<TLConnection, TLError> {
     let conn = loop {
         let conn = new_connection(config, semaphore.clone()).await?;
         match config.connection_check {
@@ -147,7 +140,7 @@ async fn new_connection_checked(
             },
             LiteNodeFilter::Archive => {
                 let info = TLBlockId {
-                    workchain: TON_MASTERCHAIN_ID,
+                    workchain: TON_MC_ID,
                     shard: TON_SHARD_FULL as i64,
                     seqno: 1,
                 };
@@ -163,7 +156,7 @@ async fn new_connection_checked(
     conn
 }
 
-async fn new_connection(config: &TLClientConfig, semaphore: Arc<Semaphore>) -> Result<TLConnection, TonlibError> {
+async fn new_connection(config: &TLClientConfig, semaphore: Arc<Semaphore>) -> Result<TLConnection, TLError> {
     let conn_id = CONNECTION_COUNTER.fetch_add(1, Ordering::Relaxed);
     let tag = format!("ton-conn-{conn_id}");
 

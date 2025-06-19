@@ -1,16 +1,15 @@
-use crate::cell::ton_cell::TonCellRef;
+use crate::block_tlb::{Coins, TVMStack};
 use crate::contracts::ton_contract::TonContractTrait;
-use crate::errors::TonlibError;
-use crate::types::tlb::block_tlb::coins::Coins;
-use crate::types::tlb::block_tlb::tvm::tvm_stack::TVMStack;
-use crate::types::tlb::TLB;
-use crate::types::ton_address::TonAddress;
+use crate::error::TLError;
 use async_trait::async_trait;
 use std::ops::Deref;
+use ton_lib_core::cell::TonCellRef;
+use ton_lib_core::traits::tlb::TLB;
+use ton_lib_core::types::TonAddress;
 
 #[async_trait]
 pub trait GetJettonData: TonContractTrait {
-    async fn get_jetton_data(&self) -> Result<GetJettonDataResult, TonlibError> {
+    async fn get_jetton_data(&self) -> Result<GetJettonDataResult, TLError> {
         let run_result = self.run_get_method("get_jetton_data", &TVMStack::default()).await?;
         GetJettonDataResult::from_stack(&mut run_result.stack_parsed()?)
     }
@@ -25,7 +24,7 @@ pub struct GetJettonDataResult {
 }
 
 impl GetJettonDataResult {
-    pub fn from_stack(stack: &mut TVMStack) -> Result<Self, TonlibError> {
+    pub fn from_stack(stack: &mut TVMStack) -> Result<Self, TLError> {
         let wallet_code = stack.pop_cell()?;
         let content = stack.pop_cell()?;
         let admin = TonAddress::from_cell(stack.pop_cell()?.deref())?;

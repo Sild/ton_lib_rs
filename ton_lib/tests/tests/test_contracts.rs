@@ -9,7 +9,7 @@
 // use ton_lib::contracts::methods::get_wallet_address::GetWalletAddress;
 // use ton_lib::contracts::methods::get_wallet_data::GetWalletData;
 // use ton_lib::contracts::ton_contract::TonContractTrait;
-// use ton_lib::contracts::ton_wallet::WalletContract;
+// use ton_lib::contracts::wallet::WalletContract;
 // use ton_lib::sys_utils::{sys_tonlib_client_set_verbosity_level, sys_tonlib_set_verbosity_level};
 // use ton_lib::types::ton_address::TonAddress;
 // use crate::tests::utils::{get_net_conf, init_logging};
@@ -54,8 +54,8 @@
 //     init_logging();
 //     log::info!("initializing tl_client with mainnet={mainnet}...");
 //     let net_conf = get_net_conf(mainnet)?;
-//     let config = ton_lib::clients::tonlibjson::TLClientConfig::new(net_conf, archive_only);
-//     let tl_client = TLClient::new(config).await?;
+//     let config_types = ton_lib::clients::tonlibjson::TLClientConfig::new(net_conf, archive_only);
+//     let tl_client = TLClient::new(config_types).await?;
 //     sys_tonlib_set_verbosity_level(0);
 //     sys_tonlib_client_set_verbosity_level(0);
 //

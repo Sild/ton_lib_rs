@@ -1,17 +1,16 @@
-use crate::cell::ton_hash::TonHash;
-
 use crate::clients::tl_client::tl::ser_de::serde_block_id_ext;
 use crate::clients::tl_client::tl::ser_de::serde_ton_hash_vec_base64;
 use crate::clients::tl_client::tl::types::{
     TLAccountAddress, TLBlockId, TLBlocksAccountTxId, TLOptions, TLSmcLibraryQueryExt, TLTxId,
 };
 use crate::clients::tl_client::tl::Base64Standard;
-use crate::errors::TonlibError;
-use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
 
+use crate::block_tlb::BlockIdExt;
+use crate::error::TLError;
 use serde::{Deserialize, Serialize};
 use std::ffi::CString;
 use strum::IntoStaticStr;
+use ton_lib_core::cell::TonHash;
 
 #[derive(IntoStaticStr, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 #[serde(tag = "@type", rename_all = "camelCase")]
@@ -208,7 +207,7 @@ pub enum TLRequest {
 }
 
 impl TLRequest {
-    pub fn to_c_str_json(&self, extra: &str) -> Result<CString, TonlibError> {
+    pub fn to_c_str_json(&self, extra: &str) -> Result<CString, TLError> {
         let mut value = serde_json::to_value(self)?;
         let obj = value.as_object_mut().unwrap();
         let extra_val = serde_json::Value::from(extra);

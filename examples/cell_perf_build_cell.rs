@@ -1,5 +1,6 @@
-use ton_lib::cell::ton_cell::TonCell;
-extern crate ton_lib;
+extern crate ton_lib_core;
+
+use ton_lib_core::cell::TonCell;
 
 fn main() -> anyhow::Result<()> {
     for _ in 0..10000000 {

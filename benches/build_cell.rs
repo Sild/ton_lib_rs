@@ -1,8 +1,9 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use ton_lib::cell::ton_cell::TonCell;
 use tonlib_core::cell::CellBuilder as TonlibCellBuilder;
 
 use std::hint::black_box;
+use ton_lib_core::cell::TonCell;
+
 const ITERATIONS_COUNT: usize = 100;
 
 fn build_empty_cell_tonlib() {

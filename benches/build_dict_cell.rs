@@ -2,10 +2,8 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use std::collections::HashMap;
 use std::hint::black_box;
 use std::sync::LazyLock;
-use ton_lib::cell::ton_cell::TonCell;
-use ton_lib::types::tlb::adapters::dict_key_adapters::DictKeyAdapterInto;
-use ton_lib::types::tlb::adapters::dict_val_adapters::DictValAdapterNum;
-use ton_lib::types::tlb::adapters::tlb_hash_map::TLBHashMap;
+use ton_lib::tlb_adapters::{DictKeyAdapterInto, DictValAdapterNum, TLBHashMap};
+use ton_lib_core::cell::TonCell;
 use tonlib_core::cell::dict::predefined_writers::val_writer_unsigned_min_size;
 use tonlib_core::cell::CellBuilder as TonlibCellBuilder;
 

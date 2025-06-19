@@ -1,21 +1,14 @@
-use crate::clients::tl_client::tl::ser_de::serde_block_id_ext;
-use crate::clients::tl_client::tl::ser_de::serde_block_id_ext_vec;
-use crate::clients::tl_client::tl::ser_de::serde_block_id_ext_vec_opt;
-use crate::clients::tl_client::tl::ser_de::serde_ton_address_base64;
-use crate::clients::tl_client::tl::ser_de::serde_ton_address_hex;
-use crate::clients::tl_client::tl::ser_de::serde_ton_hash_base64;
-use crate::clients::tl_client::tl::ser_de::serde_ton_hash_vec_base64;
+use crate::clients::tl_client::tl::ser_de::*;
 use crate::clients::tl_client::tl::Base64Standard;
 use std::borrow::Cow;
 use std::fmt::Debug;
 
-use crate::cell::ton_hash::TonHash;
-use crate::clients::client_types::{TxId, TxIdLTHash};
-use crate::errors::TonlibError;
-use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
-use crate::types::ton_address::TonAddress;
+use crate::block_tlb::BlockIdExt;
+use crate::error::TLError;
 use serde::{Deserialize, Serialize};
 use serde_aux::prelude::*;
+use ton_lib_core::cell::TonHash;
+use ton_lib_core::types::{TonAddress, TxId, TxIdLTHash};
 
 // tonlib_api.tl_api, line 23
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
@@ -30,7 +23,7 @@ pub enum TLKeyStoreType {
 // tonlib_api.tl_api, line 26
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TLConfig {
-    #[serde(rename = "config")]
+    #[serde(rename = "config_types")]
     pub net_config: String,
     pub blockchain_name: Option<String>,
     pub use_callbacks_for_network: bool,
@@ -92,14 +85,14 @@ pub struct TLTxId {
 }
 
 impl TryFrom<TxId> for TLTxId {
-    type Error = TonlibError;
+    type Error = TLError;
     fn try_from(tx_id: TxId) -> Result<Self, Self::Error> {
         match tx_id {
             TxId::LTHash(id) => Ok(Self {
                 lt: id.lt,
                 hash: id.hash,
             }),
-            rest => Err(TonlibError::TLWrongArgs(format!("tl_client doesn't support {rest:?} as tx_id"))),
+            rest => Err(TLError::TLWrongArgs(format!("tl_client doesn't support {rest:?} as tx_id"))),
         }
     }
 }

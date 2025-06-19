@@ -4,12 +4,11 @@ use ton_lib::clients::tl_client::tl::client::TLClientTrait;
 use ton_lib::clients::tl_client::TLClient;
 
 use crate::tests::utils::init_logging;
-use ton_lib::cell::ton_cell::TonCell;
-use ton_lib::cell::ton_hash::TonHash;
 use ton_lib::clients::tl_client::tl::types::TLAccountState;
 use ton_lib::sys_utils::sys_tonlib_set_verbosity_level;
-use ton_lib::types::tlb::TLB;
-use ton_lib::types::ton_address::TonAddress;
+use ton_lib_core::cell::{TonCell, TonHash};
+use ton_lib_core::traits::tlb::TLB;
+use ton_lib_core::types::TonAddress;
 
 #[tokio::test]
 async fn test_tl_client_default() -> anyhow::Result<()> {

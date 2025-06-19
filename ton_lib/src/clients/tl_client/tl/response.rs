@@ -1,11 +1,11 @@
+use crate::block_tlb::BlockIdExt;
 use crate::clients::tl_client::tl::ser_de::serde_block_id_ext;
 use crate::clients::tl_client::tl::types::{
     TLBlocksHeader, TLBlocksMCInfo, TLBlocksShards, TLBlocksTransactionsExt, TLBlocksTxs, TLConfigInfo,
     TLFullAccountState, TLLiteServerInfo, TLLogVerbosityLevel, TLOptionsInfo, TLRawExtMessageInfo,
     TLRawFullAccountState, TLRawTxs, TLSmcInfo, TLSmcLibraryResult, TLSmcLibraryResultExt, TLUpdateSyncState,
 };
-use crate::errors::TonlibError;
-use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
+use crate::error::TLError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::ffi::CStr;
@@ -41,7 +41,7 @@ pub enum TLResponse {
     #[serde(rename = "fullAccountState")]
     TLFullAccountState(Box<TLFullAccountState>),
     // tonlib_api.tl_api, line 167
-    #[serde(rename = "tvm.cell")]
+    #[serde(rename = "tvm_types.cell")]
     TLTvmCell(()), // Unsupported
     // tonlib_api.tl_api, line 179
     #[serde(rename = "smc.info")]
@@ -88,9 +88,9 @@ impl TLResponse {
     /// # Safety
     ///
     /// Safe to call if there is a string underline
-    pub unsafe fn from_c_str_json(c_str: *const c_char) -> Result<(TLResponse, Option<String>), TonlibError> {
+    pub unsafe fn from_c_str_json(c_str: *const c_char) -> Result<(TLResponse, Option<String>), TLError> {
         if c_str.is_null() {
-            return Err(TonlibError::TLWrongUsage("null pointer passed to TLResponse".to_string()));
+            return Err(TLError::TLWrongUsage("null pointer passed to TLResponse".to_string()));
         }
         // No need to free c_str. Tonlib cares about it itself.
         let c_str = unsafe { CStr::from_ptr(c_str) };

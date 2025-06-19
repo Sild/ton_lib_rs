@@ -1,8 +1,3 @@
-use crate::cell::ton_hash::TonHash;
-use crate::clients::tl_client::tl::Base64Standard;
-use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
-use crate::types::tlb::block_tlb::block::shard_ident::ShardIdent;
-use crate::types::ton_address::TonAddress;
 use serde::de::IntoDeserializer;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_aux::prelude::deserialize_number_from_string;
@@ -10,6 +5,7 @@ use std::str::FromStr;
 
 pub(super) mod serde_ton_address_hex {
     use super::*;
+    use ton_lib_core::types::TonAddress;
 
     pub fn serialize<S: Serializer>(hash: &TonAddress, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(hash.to_hex().as_str())
@@ -21,6 +17,7 @@ pub(super) mod serde_ton_address_hex {
 
 pub(super) mod serde_ton_address_base64 {
     use super::*;
+    use ton_lib_core::types::TonAddress;
 
     pub fn serialize<S: Serializer>(hash: &TonAddress, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(hash.to_string().as_str())
@@ -32,6 +29,7 @@ pub(super) mod serde_ton_address_base64 {
 
 pub(super) mod serde_ton_hash_base64 {
     use super::*;
+    use ton_lib_core::cell::TonHash;
 
     pub fn serialize<S: Serializer>(hash: &TonHash, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(hash.to_base64().as_str())
@@ -43,6 +41,7 @@ pub(super) mod serde_ton_hash_base64 {
 
 pub(super) mod serde_ton_hash_vec_base64 {
     use super::*;
+    use ton_lib_core::cell::TonHash;
 
     pub fn serialize<S: Serializer>(data: &[TonHash], serializer: S) -> Result<S::Ok, S::Error> {
         let base64_strings: Vec<String> = data.iter().map(|h| h.to_base64()).collect();
@@ -51,12 +50,15 @@ pub(super) mod serde_ton_hash_vec_base64 {
 
     pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<TonHash>, D::Error> {
         let base64_vec: Vec<String> = Vec::deserialize(deserializer)?;
-        base64_vec.into_iter().map(|s| TonHash::from_str(&s).map_err(serde::de::Error::custom)).collect()
+        base64_vec.into_iter().map(|s| TonHash::from_str(&s).map_err(Error::custom)).collect()
     }
 }
 
 pub(super) mod serde_block_id_ext {
     use super::*;
+    use crate::block_tlb::{BlockIdExt, ShardIdent};
+    use crate::clients::tl_client::tl::Base64Standard;
+    use ton_lib_core::cell::TonHash;
 
     // tonlib_api.tl_api, line 51
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
@@ -90,15 +92,15 @@ pub(super) mod serde_block_id_ext {
                 shard: tl_block_id_ext.shard as u64,
             },
             seqno: tl_block_id_ext.seqno as u32,
-            root_hash: TonHash::from_vec(tl_block_id_ext.root_hash).map_err(serde::de::Error::custom)?,
-            file_hash: TonHash::from_vec(tl_block_id_ext.file_hash).map_err(serde::de::Error::custom)?,
+            root_hash: TonHash::from_vec(tl_block_id_ext.root_hash).map_err(Error::custom)?,
+            file_hash: TonHash::from_vec(tl_block_id_ext.file_hash).map_err(Error::custom)?,
         })
     }
 }
 
 pub(super) mod serde_block_id_ext_vec {
-
     use super::*;
+    use crate::block_tlb::BlockIdExt;
     pub fn serialize<S: Serializer>(data: &[BlockIdExt], serializer: S) -> Result<S::Ok, S::Error> {
         let tl_wrapped: Vec<_> = data
             .iter()
@@ -110,17 +112,13 @@ pub(super) mod serde_block_id_ext_vec {
 
     pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<BlockIdExt>, D::Error> {
         let values: Vec<serde_json::Value> = Vec::deserialize(deserializer)?;
-        values
-            .into_iter()
-            .map(serde_block_id_ext::deserialize)
-            .collect::<Result<_, _>>()
-            .map_err(serde::de::Error::custom)
+        values.into_iter().map(serde_block_id_ext::deserialize).collect::<Result<_, _>>().map_err(Error::custom)
     }
 }
 
 pub(super) mod serde_block_id_ext_vec_opt {
-
     use super::*;
+    use crate::block_tlb::BlockIdExt;
 
     pub fn serialize<S: Serializer>(data: &Option<Vec<BlockIdExt>>, serializer: S) -> Result<S::Ok, S::Error> {
         match data {
@@ -145,9 +143,9 @@ pub(super) mod serde_block_id_ext_vec_opt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cell::ton_hash::TonHash;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
+    use ton_lib_core::cell::TonHash;
 
     #[test]
     fn test_ton_hash_serde() -> anyhow::Result<()> {

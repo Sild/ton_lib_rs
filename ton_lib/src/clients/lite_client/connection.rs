@@ -3,7 +3,7 @@ use std::net::{Ipv4Addr, SocketAddrV4};
 use std::time::Duration;
 
 use crate::clients::net_config::LiteEndpoint;
-use crate::errors::TonlibError;
+use crate::error::TLError;
 use adnl::AdnlPeer;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
@@ -27,7 +27,7 @@ pub(super) struct Connection {
 }
 
 impl Connection {
-    pub(super) fn new(endpoint: LiteEndpoint, conn_timeout: Duration) -> Result<Self, TonlibError> {
+    pub(super) fn new(endpoint: LiteEndpoint, conn_timeout: Duration) -> Result<Self, TLError> {
         let LiteEndpoint { ip, port, id } = endpoint;
         let ip_addr = Ipv4Addr::from(ip as u32);
         let public = BASE64_STANDARD.decode(id.key)?;
@@ -41,12 +41,12 @@ impl Connection {
         Ok(conn)
     }
 
-    pub(super) async fn exec(&mut self, req: WrappedRequest, req_timeout: Duration) -> Result<Response, TonlibError> {
+    pub(super) async fn exec(&mut self, req: WrappedRequest, req_timeout: Duration) -> Result<Response, TLError> {
         let ready_service = self.connect().await?.ready().await?;
         Ok(timeout(req_timeout, ready_service.call(req)).await??)
     }
 
-    pub(super) async fn connect(&mut self) -> Result<&mut ConnService, TonlibError> {
+    pub(super) async fn connect(&mut self) -> Result<&mut ConnService, TLError> {
         if self.service.is_none() {
             let adnl = timeout(self.conn_timeout, AdnlPeer::connect(&self.public, self.addr)).await??;
 

@@ -1,5 +1,5 @@
-use crate::errors::TonlibError;
-use crate::types::tlb::block_tlb::block::block_id_ext::BlockIdExt;
+use crate::block_tlb::BlockIdExt;
+use crate::error::TLError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs::{exists, File};
@@ -43,8 +43,8 @@ pub struct TonNetConfig {
 
 impl TonNetConfig {
     pub fn get_json(mainnet: bool) -> String { get_default_net_conf(mainnet) }
-    pub fn new(json: &str) -> Result<Self, TonlibError> { Ok(serde_json::from_str(json)?) }
-    pub fn from_env_path(env_var: &str, fallback: &str) -> Result<Self, TonlibError> {
+    pub fn new(json: &str) -> Result<Self, TLError> { Ok(serde_json::from_str(json)?) }
+    pub fn from_env_path(env_var: &str, fallback: &str) -> Result<Self, TLError> {
         let path = match std::env::var(env_var) {
             Ok(path) => path,
             Err(_) => return TonNetConfig::new(fallback),
@@ -73,7 +73,7 @@ fn get_default_net_conf(mainnet: bool) -> String {
     match get_default_net_conf_throw(mainnet) {
         Ok(net_conf) => net_conf,
         Err(err) => {
-            log::error!("Failed to load net config: {err}. Using default (mainnet: {mainnet})");
+            log::error!("Failed to load net config_types: {err}. Using default (mainnet: {mainnet})");
             if mainnet {
                 TON_NET_CONF_MAINNET.to_string()
             } else {
@@ -83,7 +83,7 @@ fn get_default_net_conf(mainnet: bool) -> String {
     }
 }
 
-fn get_default_net_conf_throw(mainnet: bool) -> Result<String, TonlibError> {
+fn get_default_net_conf_throw(mainnet: bool) -> Result<String, TLError> {
     let env_var_name = match mainnet {
         true => "TON_NET_CONF_MAINNET_PATH",
         false => "TON_NET_CONF_TESTNET_PATH",

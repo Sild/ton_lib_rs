@@ -5,7 +5,7 @@ members = [
     "ton_lib",
     "examples",
     "benches"
-]
+, "tonlib_core"]
 
 [workspace.package]
 description = "A collection of types and utilities for interacting with the TON network"

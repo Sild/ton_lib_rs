@@ -2,7 +2,7 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::{hint::black_box, ops::Deref, sync::LazyLock};
-use ton_lib::boc::BOC;
+use ton_lib_core::boc::BOC;
 use tonlib_core::cell::BagOfCells;
 
 const ITERATIONS_COUNT: usize = 100;

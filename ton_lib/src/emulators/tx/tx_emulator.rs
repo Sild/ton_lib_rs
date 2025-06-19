@@ -1,18 +1,13 @@
-use crate::bc_constants::ZERO_CONFIG_BOC_B64;
-use crate::cell::ton_hash::TonHash;
 use crate::emulators::emul_bc_config::EmulBCConfig;
 use crate::emulators::emul_utils::{convert_emulator_response, make_b64_c_str, set_param_failed};
 use crate::emulators::tx::tx_emul_args::{TXEmulArgs, TXEmulOrdArgs, TXEmulTickTockArgs};
 use crate::emulators::tx::tx_emul_response::{TXEmulationResponse, TXEmulationSuccess};
-use crate::errors::TonlibError;
+use crate::error::TLError;
 use std::ffi::CString;
 use std::sync::Arc;
-use tonlib_sys::{
-    transaction_emulator_create, transaction_emulator_destroy, transaction_emulator_emulate_tick_tock_transaction,
-    transaction_emulator_emulate_transaction, transaction_emulator_set_config, transaction_emulator_set_debug_enabled,
-    transaction_emulator_set_ignore_chksig, transaction_emulator_set_libs, transaction_emulator_set_lt,
-    transaction_emulator_set_prev_blocks_info, transaction_emulator_set_rand_seed, transaction_emulator_set_unixtime,
-};
+use ton_lib_core::cell::TonHash;
+use ton_lib_core::constants::TON_ZERO_CONFIG_BOC_B64;
+use tonlib_sys::*;
 
 pub struct TXEmulator {
     emulator: *mut std::ffi::c_void,
@@ -26,11 +21,11 @@ pub struct TXEmulator {
 }
 
 impl TXEmulator {
-    pub fn new(log_level: u32, debug_enabled: bool) -> Result<Self, TonlibError> {
-        let zero_config = Arc::new(CString::new(ZERO_CONFIG_BOC_B64)?);
+    pub fn new(log_level: u32, debug_enabled: bool) -> Result<Self, TLError> {
+        let zero_config = Arc::new(CString::new(TON_ZERO_CONFIG_BOC_B64)?);
         let ptr = unsafe { transaction_emulator_create(zero_config.as_ptr(), log_level) };
         if ptr.is_null() {
-            return Err(TonlibError::EmulatorCreationFailed);
+            return Err(TLError::EmulatorCreationFailed);
         }
         let mut emulator = Self {
             emulator: ptr,
@@ -48,7 +43,7 @@ impl TXEmulator {
 
     /// shard_account: https://github.com/ton-blockchain/ton/blob/cee4c674ea999fecc072968677a34a7545ac9c4d/crypto/block/block.tlb#L275 (NOT Account!!)
     /// You can't emulate tick-tock tx using this method
-    pub fn emulate_ord(&mut self, args: &TXEmulOrdArgs) -> Result<TXEmulationSuccess, TonlibError> {
+    pub fn emulate_ord(&mut self, args: &TXEmulOrdArgs) -> Result<TXEmulationSuccess, TLError> {
         self.prepare_emulator(&args.emul_args)?;
         let state_c_str = make_b64_c_str(&args.emul_args.shard_account_boc)?;
         let in_msg_c_str = make_b64_c_str(&args.in_msg_boc)?;
@@ -59,7 +54,7 @@ impl TXEmulator {
         TXEmulationResponse::from_json(response_str)?.into_success()
     }
 
-    pub fn emulate_ticktock(&mut self, args: &TXEmulTickTockArgs) -> Result<TXEmulationSuccess, TonlibError> {
+    pub fn emulate_ticktock(&mut self, args: &TXEmulTickTockArgs) -> Result<TXEmulationSuccess, TLError> {
         self.prepare_emulator(&args.emul_args)?;
         let state_c_str = make_b64_c_str(&args.emul_args.shard_account_boc)?;
         let response_ptr = unsafe {
@@ -69,7 +64,7 @@ impl TXEmulator {
         TXEmulationResponse::from_json(response_str)?.into_success()
     }
 
-    fn prepare_emulator(&mut self, args: &TXEmulArgs) -> Result<(), TonlibError> {
+    fn prepare_emulator(&mut self, args: &TXEmulArgs) -> Result<(), TLError> {
         self.actualize_config(&args.bc_config)?;
         self.actualize_rand_seed(&args.rand_seed)?;
         self.actualize_utime(args.utime)?;
@@ -84,19 +79,19 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn actualize_config(&mut self, config: &EmulBCConfig) -> Result<(), TonlibError> {
+    fn actualize_config(&mut self, config: &EmulBCConfig) -> Result<(), TLError> {
         let config_hash = calc_hash(config.as_bytes());
         if self.cur_bc_config_hash == config_hash {
             return Ok(());
         }
         match unsafe { transaction_emulator_set_config(self.emulator, config.as_ptr()) } {
             true => self.cur_bc_config_hash = config_hash,
-            false => return set_param_failed("config"),
+            false => return set_param_failed("config_types"),
         }
         Ok(())
     }
 
-    fn actualize_rand_seed(&mut self, rand_seed: &TonHash) -> Result<(), TonlibError> {
+    fn actualize_rand_seed(&mut self, rand_seed: &TonHash) -> Result<(), TLError> {
         if self.cur_random_seed == *rand_seed {
             return Ok(());
         }
@@ -109,7 +104,7 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn actualize_utime(&mut self, utime: u32) -> Result<(), TonlibError> {
+    fn actualize_utime(&mut self, utime: u32) -> Result<(), TLError> {
         if self.cur_utime == utime {
             return Ok(());
         }
@@ -120,7 +115,7 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn actualize_lt(&mut self, lt: u64) -> Result<(), TonlibError> {
+    fn actualize_lt(&mut self, lt: u64) -> Result<(), TLError> {
         if self.cur_lt == lt {
             return Ok(());
         }
@@ -131,7 +126,7 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn actualize_libs(&mut self, libs_boc: &[u8]) -> Result<(), TonlibError> {
+    fn actualize_libs(&mut self, libs_boc: &[u8]) -> Result<(), TLError> {
         let libs_hash = calc_hash(libs_boc);
         if self.cur_libs_hash == libs_hash {
             return Ok(());
@@ -144,14 +139,14 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn set_debug_enabled(&mut self, debug_enabled: bool) -> Result<(), TonlibError> {
+    fn set_debug_enabled(&mut self, debug_enabled: bool) -> Result<(), TLError> {
         match unsafe { transaction_emulator_set_debug_enabled(self.emulator, debug_enabled) } {
             true => Ok(()),
             false => set_param_failed("debug_enabled"),
         }
     }
 
-    fn actualize_prev_blocks_info(&mut self, prev_blocks_info: &[u8]) -> Result<(), TonlibError> {
+    fn actualize_prev_blocks_info(&mut self, prev_blocks_info: &[u8]) -> Result<(), TLError> {
         let prev_blocks_hash = calc_hash(prev_blocks_info);
         if self.cur_prev_blocks_info_hash == prev_blocks_hash {
             return Ok(());
@@ -164,7 +159,7 @@ impl TXEmulator {
         Ok(())
     }
 
-    fn actualize_ignore_chksig(&mut self, ignore: bool) -> Result<(), TonlibError> {
+    fn actualize_ignore_chksig(&mut self, ignore: bool) -> Result<(), TLError> {
         if self.cur_ignore_chksig == ignore {
             return Ok(());
         }
@@ -196,15 +191,13 @@ fn calc_hash<T: AsRef<[u8]> + std::hash::Hash>(data: T) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::block_tlb::{Msg, ShardAccount, Tx};
     use crate::emulators::tx::tx_emul_args::TXEmulArgs;
     use crate::sys_utils::sys_tonlib_set_verbosity_level;
-    use crate::types::tlb::block_tlb::account::ShardAccount;
-    use crate::types::tlb::block_tlb::msg::Msg;
-    use crate::types::tlb::block_tlb::tx::Tx;
-    use crate::types::tlb::TLB;
     use std::str::FromStr;
     use std::sync::LazyLock;
     use tokio_test::{assert_err, assert_ok};
+    use ton_lib_core::traits::tlb::TLB;
 
     static BC_CONFIG: LazyLock<EmulBCConfig> = LazyLock::new(|| {
         EmulBCConfig::from_boc_hex(include_str!("../../../../resources/tests/bc_config_key_block_42123611.hex"))
