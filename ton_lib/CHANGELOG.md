@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.32](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.31...ton_lib-v0.0.32) - 2025-06-27
+
+### Fixed
+
+- fix build
+- fix build
+
+### Other
+
+- support jetton, nft, sbt, cleanup deps ([#66](https://github.com/Sild/ton_lib_rs/pull/66))
+- try fix build
+- tonlib -> ton_lib
+- Dev ([#64](https://github.com/Sild/ton_lib_rs/pull/64))
+
 ## [0.0.31](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.30...ton_lib-v0.0.31) - 2025-06-07
 
 ### Other
