@@ -1,6 +1,6 @@
 [package]
 name = "ton_lib"
-version = "0.0.31"
+version = "0.0.32"
 description.workspace = true
 keywords.workspace = true
 edition.workspace = true

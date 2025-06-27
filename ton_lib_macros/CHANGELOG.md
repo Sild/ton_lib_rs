@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.21](https://github.com/Sild/ton_lib_rs/compare/ton_lib_macros-v0.0.20...ton_lib_macros-v0.0.21) - 2025-06-27
+
+### Fixed
+
+- fix build
+- fix build
+- fix build
+- fix package description
+- fix projects description
+
+### Other
+
+- support jetton, nft, sbt, cleanup deps ([#66](https://github.com/Sild/ton_lib_rs/pull/66))
+- tonlib -> ton_lib
+- Dev ([#64](https://github.com/Sild/ton_lib_rs/pull/64))
+- release
+- from_slize -> from_slice_sized, as_mut_mut -> as_smth_mut
+- support ConfigParams
+- release
+- rename TLBType -> TLB
+- release
+- TLBDerive for enum produces as_X, as_mut_X, is_X, From<variant> impls
+- release
+- support BlockInfo tlb
+- release
+- hide Builder & Parser consturctors behind TonCell methods
+- add zero_block_id, zero_config as constants
+- cleanup macros, init ton_wallet support
+- *(ton_lib_macros)* release v0.0.12
+- update contract signature, handle no-libs in tl-response properly
+- Merge pull request #21 from Sild/release-plz-2025-05-03T00-27-08Z
+- release
+- release
+- Treat LibsDict as regular TLB object (no root cell with 'present' flag
+- release
+- use usize as indexes everywhere
+- release
+- release
+- restruct project, move ton_lib to root folder
+
 ## [0.0.17](https://github.com/Sild/ton_lib_rs/compare/ton_lib_macros-v0.0.16...ton_lib_macros-v0.0.17) - 2025-06-02
 
 ### Other
