@@ -3,6 +3,7 @@ use crate::clients::tl_client::tl::client::TLClientTrait;
 use crate::clients::tl_client::TLClient;
 use crate::contracts::tl_provider::cache_stats::CacheStats;
 use crate::contracts::tl_provider::provider_config::TLProviderConfig;
+use crate::emulators::tvm::tvm_response::TVMGetMethodSuccess;
 use crate::error::TLError;
 use futures_util::future::{join_all, try_join_all};
 use moka::future::Cache;
@@ -16,11 +17,29 @@ use ton_lib_core::error::TLCoreError;
 use ton_lib_core::traits::contract_provider::ContractState;
 use ton_lib_core::types::{TonAddress, TxIdLTHash};
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct EmulateGetMethodArgs {
+    pub state: Arc<ContractState>,
+    pub method_id: i32,
+    pub stack: Option<Arc<Vec<u8>>>,
+}
+
+impl EmulateGetMethodArgs {
+    pub fn new(state: Arc<ContractState>, method_id: i32, stack: Option<Arc<Vec<u8>>>) -> Self {
+        Self {
+            state,
+            method_id,
+            stack,
+        }
+    }
+}
+
 pub(crate) struct StateCache {
     pub tl_client: TLClient,
     pub latest_tx_cache: Cache<TonAddress, TxIdLTHash>,
     pub state_latest_cache: Cache<TonAddress, Arc<ContractState>>,
     pub state_by_tx_cache: Cache<TxIdLTHash, Arc<ContractState>>,
+    pub emulate_get_method_cache: Cache<EmulateGetMethodArgs, TVMGetMethodSuccess>,
     pub cache_stats: CacheStats,
 }
 
@@ -33,6 +52,7 @@ impl StateCache {
             latest_tx_cache: init_cache(capacity, ttl),
             state_latest_cache: init_cache(capacity, ttl),
             state_by_tx_cache: init_cache(capacity, ttl),
+            emulate_get_method_cache: init_cache(capacity, ttl),
             cache_stats: CacheStats::default(),
         });
         let weak = Arc::downgrade(&cache);

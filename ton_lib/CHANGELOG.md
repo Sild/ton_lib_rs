@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.36](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.35...ton_lib-v0.0.36) - 2025-07-03
+
+### Other
+
+- add cache for emulate_get_method
+
 ## [0.0.35](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.34...ton_lib-v0.0.35) - 2025-07-01
 
 ### Other

@@ -17,7 +17,7 @@ pub trait ContractProvider: Send + Sync + 'static {
     async fn get_cache_stats(&self) -> Result<HashMap<String, usize>, TLCoreError>;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct ContractMethodArgs {
     pub address: TonAddress,
     pub method_state: ContractMethodState,
@@ -41,7 +41,7 @@ impl ContractMethodArgs {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum ContractMethodState {
     Latest,
     TxId(TxIdLTHash),
@@ -54,7 +54,7 @@ pub struct ContractMethodResponse {
     pub stack_boc: Vec<u8>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct ContractState {
     pub address: TonAddress,
     pub mc_seqno: u32,

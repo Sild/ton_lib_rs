@@ -6,7 +6,7 @@ use base64::Engine;
 use serde::{Deserialize, Serialize};
 use ton_lib_core::traits::tlb::TLB;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TVMGetMethodSuccess {
     pub vm_exit_code: i32,
     pub vm_log: Option<String>,

@@ -1,7 +1,7 @@
 use crate::block_tlb::TVMStack;
 use crate::clients::tl_client::tl::client::TLClientTrait;
 use crate::clients::tl_client::TLClient;
-use crate::contracts::tl_provider::provider_cache::StateCache;
+use crate::contracts::tl_provider::provider_cache::{EmulateGetMethodArgs, StateCache};
 use crate::contracts::tl_provider::provider_config::TLProviderConfig;
 use crate::emulators::emul_bc_config::EmulBCConfig;
 use crate::emulators::tvm::tvm_c7::TVMEmulatorC7;
@@ -12,6 +12,8 @@ use async_trait::async_trait;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use std::collections::HashMap;
+use std::ops::Deref;
+use std::sync::atomic::Ordering::Relaxed;
 use std::sync::Arc;
 use ton_lib_core::cell::{TonCell, TonCellUtils, TonHash};
 use ton_lib_core::error::TLCoreError;
@@ -47,8 +49,24 @@ impl ContractProvider for TLProvider {
             ContractMethodState::TxId(id) => self.get_contract(&args.address, Some(&id)).await?,
             ContractMethodState::Custom(state) => state,
         };
-        let stack = args.stack_boc.as_deref().unwrap_or(TVMStack::EMPTY_BOC);
-        let success = self.emulate_get_method(&state, args.method_id, stack).await?;
+
+        let emulate_args = EmulateGetMethodArgs::new(state, args.method_id, args.stack_boc.map(Arc::new));
+        self.cache.cache_stats.emulate_get_method_req.fetch_add(1, Relaxed);
+        let success = self
+            .cache
+            .emulate_get_method_cache
+            .try_get_with_by_ref(&emulate_args, async {
+                self.cache.cache_stats.emulate_get_method_miss.fetch_add(1, Relaxed);
+                self.emulate_get_method(
+                    &emulate_args.state,
+                    emulate_args.method_id,
+                    emulate_args.stack.as_ref().map(|s| s.as_slice()).unwrap_or(TVMStack::EMPTY_BOC),
+                )
+                .await
+            })
+            .await
+            .map_err(|e| TLCoreError::from(e.deref()))?;
+
         Ok(ContractMethodResponse {
             exit_code: success.vm_exit_code,
             stack_boc: BASE64_STANDARD.decode(success.stack_boc_base64)?,
@@ -58,7 +76,8 @@ impl ContractProvider for TLProvider {
     async fn get_cache_stats(&self) -> Result<HashMap<String, usize>, TLCoreError> {
         let latest_entry_count = self.cache.state_latest_cache.entry_count() as usize;
         let by_tx_entry_count = self.cache.state_by_tx_cache.entry_count() as usize;
-        Ok(self.cache.cache_stats.export(latest_entry_count, by_tx_entry_count))
+        let emulate_get_method_entry_count = self.cache.emulate_get_method_cache.entry_count() as usize;
+        Ok(self.cache.cache_stats.export(latest_entry_count, by_tx_entry_count, emulate_get_method_entry_count))
     }
 }
 
