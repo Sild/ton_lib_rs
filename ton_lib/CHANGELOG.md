@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.40](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.39...ton_lib-v0.0.40) - 2025-08-25
+
+### Fixed
+
+- fixed deps
+- fix format and build
+
+### Other
+
+- Merge pull request #84 from lexain12/jetton-loader
+- resolved conversations
+- Cargo fmt
+- Fixed test
+- Resolve last conversations
+- Fixed according to consistency
+- Cargo fmt
+- Resolved part of conversations
+- RIP
+- Resolved threads, refactored metaloader
+- Added jetton parser/loader, dirt commit, need to rearrange files
+
 ## [0.0.39](https://github.com/Sild/ton_lib_rs/compare/ton_lib-v0.0.38...ton_lib-v0.0.39) - 2025-08-20
 
 ### Fixed
